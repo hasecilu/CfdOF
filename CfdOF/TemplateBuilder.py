@@ -35,6 +35,7 @@ class TemplateBuilder(object):
     Build a case directory from a template directory by substituting
     values in a python settings dictionary
     """
+
     def __init__(self, case_path, template_path, settings):
         if case_path[0] == "~":
             case_path = os.path.expanduser(case_path)
@@ -43,15 +44,15 @@ class TemplateBuilder(object):
         self.settings = settings
         self.template_path = template_path
 
-        self.buildDir('.')
+        self.buildDir(".")
 
     def buildDir(self, rel_dir):
-        """ Recursively build files in dir (relative to case base) """
+        """Recursively build files in dir (relative to case base)"""
         full_dir = os.path.join(self.template_path, rel_dir)
         for f in os.listdir(full_dir):
             rel_file = os.path.join(rel_dir, f)
             # Ignore files beginning with underscore so they can be used as includes
-            if os.path.basename(rel_file)[0] != '_':
+            if os.path.basename(rel_file)[0] != "_":
                 if os.path.isdir(os.path.join(self.template_path, rel_dir, f)):
                     self.buildDir(rel_file)
                 else:
@@ -67,16 +68,17 @@ class TemplateBuilder(object):
             os.makedirs(path)
         except OSError as exc:
             import errno
+
             if exc.errno == errno.EEXIST and os.path.isdir(path):
                 pass
             else:
                 raise
         # Write file - always want unix line endings so use binary
-        with open(os.path.join(self.case_path, rel_file), 'wb') as ofid:
-            ofid.write(contents.encode('utf-8'))
+        with open(os.path.join(self.case_path, rel_file), "wb") as ofid:
+            ofid.write(contents.encode("utf-8"))
 
     def buildFile(self, rel_file, params):
-        """ Open the specified template file, make replacements, and return as a string """
+        """Open the specified template file, make replacements, and return as a string"""
         try:
             fid = open(os.path.join(self.template_path, rel_file))
         except IOError:
@@ -89,7 +91,9 @@ class TemplateBuilder(object):
             try:
                 fid = open(os.path.join(self.template_path, rel_file_default))
             except IOError:
-                raise IOError("Error reading file {} in template path {}".format(rel_file, self.template_path))
+                raise IOError(
+                    "Error reading file {} in template path {}".format(rel_file, self.template_path)
+                )
             finally:
                 rel_file = rel_file_default
         contents = fid.read()
@@ -107,8 +111,8 @@ class TemplateBuilder(object):
         return contents
 
     def findAtCurrentLevel(self, string, find_string, start):
-        """ Find the specified string, ignoring anything inside brackets """
-        brackets = {'%(': '%)', '%[': '%]', '%{': '%}'}
+        """Find the specified string, ignoring anything inside brackets"""
+        brackets = {"%(": "%)", "%[": "%]", "%{": "%}"}
         while True:
             n = string.find(find_string, start)
             if n < 0:
@@ -131,22 +135,22 @@ class TemplateBuilder(object):
                     return n
                 else:
                     end = self.findClosingBracket(string, min(next_bra))
-                    start = end+2
+                    start = end + 2
 
     def findClosingBracket(self, string, start):
-        """ Find the closing bracket corresponding to the one at the start """
-        brackets = {'%(': '%)', '%[': '%]', '%{': '%}'}
-        bra = string[start:start+2]
+        """Find the closing bracket corresponding to the one at the start"""
+        brackets = {"%(": "%)", "%[": "%]", "%{": "%}"}
+        bra = string[start : start + 2]
         ket = brackets[bra]
-        found = self.findAtCurrentLevel(string, ket, start+2)
+        found = self.findAtCurrentLevel(string, ket, start + 2)
         if found is None:
-            raise BracketError("Error matching {} ...".format(string[start:start+40]))
+            raise BracketError("Error matching {} ...".format(string[start : start + 40]))
         else:
             return found
 
     def process(self, contents, curr_file, params):
-        """ Processes the contents string at the current level (does not go inside brackets - this is done
-        recursively inside the functions """
+        """Processes the contents string at the current level (does not go inside brackets - this is done
+        recursively inside the functions"""
         # print("Before processConditionals {} {}:\n".format(curr_file, params), contents)
         contents = self.processConditionals(contents, curr_file, params)
         # print("Before processBraces {} {}:\n".format(curr_file, params), contents)
@@ -170,24 +174,26 @@ class TemplateBuilder(object):
         pos = start
         # Loop tags
         while pos < len(contents):
-            end = self.findAtCurrentLevel(contents, "%:", pos+2)
+            end = self.findAtCurrentLevel(contents, "%:", pos + 2)
             if end is None:
                 end = len(contents)
             block = contents[pos:end]
             endOfKey = self.findAtCurrentLevel(block, "\n", 0)
             matchKeys = block[2:endOfKey]
-            block = block[endOfKey+1:]
+            block = block[endOfKey + 1 :]
             # Process matchKeys
             matchKeys = self.process(matchKeys, curr_file, params)
             matchKeys = matchKeys.split()
             if params[0] in matchKeys or "default" in matchKeys:
-                block = self.process(block, curr_file, params[1:])  # Remove first (matching) param inside block
-                return contents[:start]+block
+                block = self.process(
+                    block, curr_file, params[1:]
+                )  # Remove first (matching) param inside block
+                return contents[:start] + block
             pos = end
         return contents[:start]
 
     def processBraces(self, contents, curr_file, params):
-        """ Process brace substitutions. Format:
+        """Process brace substitutions. Format:
         %{val1 [val2]\n
         content
         %} [output-file]\n
@@ -198,21 +204,21 @@ class TemplateBuilder(object):
             if start < 0:
                 break
             end = self.findClosingBracket(contents, start)
-            replace = contents[start+2:end]
+            replace = contents[start + 2 : end]
             # Split into keys and contents
-            delim = self.findAtCurrentLevel(replace, '\n', 0)
+            delim = self.findAtCurrentLevel(replace, "\n", 0)
             if delim is None:
                 delim = len(replace)
             keys = replace[:delim]
             # Make any replacements in keys
             keys = self.process(keys, curr_file, params)
-            keys = keys.split(' ')
-            replace = replace[delim+1:]
+            keys = keys.split(" ")
+            replace = replace[delim + 1 :]
             # Extract trailing filename parameter if any
-            trailing_nl = self.findAtCurrentLevel(contents, '\n', end+2)
+            trailing_nl = self.findAtCurrentLevel(contents, "\n", end + 2)
             filename_param = None
             if trailing_nl is not None:
-                filename_param = contents[end+2:trailing_nl].strip()
+                filename_param = contents[end + 2 : trailing_nl].strip()
             # Loop the content passing values
             replacement = ""
             for v in keys:
@@ -221,23 +227,25 @@ class TemplateBuilder(object):
                     # Process filename with parameter
                     filename = self.process(filename_param, curr_file, [v] + params)
                     if not filename:
-                        raise ValueError("File name parameter " + filename_param + "evaluates to nothing")
+                        raise ValueError(
+                            "File name parameter " + filename_param + "evaluates to nothing"
+                        )
                 processed = self.process(replace, filename if filename else curr_file, [v] + params)
                 if filename:
                     self.writeToFile(filename, processed)
                 else:
                     replacement += processed
             replace = replacement
-            afterEnd = (trailing_nl+1 if trailing_nl else end+2)
+            afterEnd = trailing_nl + 1 if trailing_nl else end + 2
             contents = contents[:start] + replace + contents[afterEnd:]
         return contents
 
     def makeVarSubstitutions(self, contents, curr_file, params):
-        """ Perform variable substitutions. Format:
-        %(key/in/settings/dict%) key/in/settings/dict is the name of a variable 
+        """Perform variable substitutions. Format:
+        %(key/in/settings/dict%) key/in/settings/dict is the name of a variable
         in the settings dict, with subdicts separated by slashes, or a numeric value on the
-        parameter stack. If 
-        key/in/settings/dict specifies a dictionary or a list, its keys/values 
+        parameter stack. If
+        key/in/settings/dict specifies a dictionary or a list, its keys/values
         are outputted separated by white space
         """
         while True:
@@ -245,7 +253,7 @@ class TemplateBuilder(object):
             if start < 0:
                 break
             end = self.findClosingBracket(contents, start)
-            key = contents[start+2:end]
+            key = contents[start + 2 : end]
             # Make any replacements
             key = self.process(key, curr_file, params)
             # Special case - if key is a number, treat as positional parameter
@@ -257,7 +265,7 @@ class TemplateBuilder(object):
                     raise ValueError("Index " + key + " of stack variables is out of range") from ex
             # Otherwise, navigate the settings dict for the key
             else:
-                keys = key.split('/')
+                keys = key.split("/")
                 dic = self.settings
                 for k in keys:
                     # Special key to list contents
@@ -291,7 +299,7 @@ class TemplateBuilder(object):
                     replace = replacement[:-1]  # Trim trailing space
                 else:
                     replace = str(dic)
-            contents = contents[:start] + replace + contents[end+2:]
+            contents = contents[:start] + replace + contents[end + 2 :]
         return contents
 
     def makeFileSubstitutions(self, contents, cur_file, params):
@@ -301,10 +309,10 @@ class TemplateBuilder(object):
             if start < 0:
                 break
             end = self.findClosingBracket(contents, start)
-            new_file = contents[start+2:end]
+            new_file = contents[start + 2 : end]
             if cur_file == new_file:
                 raise ValueError("File cannot include itself: " + cur_file)
             replacement = self.buildFile(new_file, params)
-            afterEnd = (end+3 if contents[end+2:end+3] == '\n' else end+2)
+            afterEnd = end + 3 if contents[end + 2 : end + 3] == "\n" else end + 2
             contents = contents[:start] + replacement + contents[afterEnd:]
         return contents

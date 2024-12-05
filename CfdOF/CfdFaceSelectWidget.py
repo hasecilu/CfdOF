@@ -28,6 +28,7 @@ from CfdOF import CfdTools
 from CfdOF.Mesh import CfdMeshRefinement
 from CfdOF.Solve import CfdFluidBoundary
 from CfdOF.Solve import CfdZone
+
 if FreeCAD.GuiUp:
     import FreeCADGui
     from PySide import QtCore
@@ -37,10 +38,19 @@ if FreeCAD.GuiUp:
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
+
 class CfdFaceSelectWidget:
-    def __init__(self, parent_widget, obj, allow_obj_sel, allow_face_sel, allow_solid_sel,
-                 allow_point_sel=False, allow_edge_sel=False):
-        ui_path = os.path.join(CfdTools.getModulePath(), 'Gui', "TaskPanelCfdListOfFaces.ui")
+    def __init__(
+        self,
+        parent_widget,
+        obj,
+        allow_obj_sel,
+        allow_face_sel,
+        allow_solid_sel,
+        allow_point_sel=False,
+        allow_edge_sel=False,
+    ):
+        ui_path = os.path.join(CfdTools.getModulePath(), "Gui", "TaskPanelCfdListOfFaces.ui")
         self.parent_widget = parent_widget
         self.form = FreeCADGui.PySideUic.loadUi(ui_path, self.parent_widget)
         self.parent_widget.layout().addWidget(self.form)
@@ -75,29 +85,36 @@ class CfdFaceSelectWidget:
             sel_list.append("vertices")
             sel_rb_list.append("Vertex")
 
-        sel_rb_text = ' / '.join(sel_rb_list)
+        sel_rb_text = " / ".join(sel_rb_list)
         sel_msg = ""
 
         if len(sel_list) > 0:
             sel_msg = sel_list[0]
             if len(sel_list) > 1:
-                for i in range(len(sel_list)-2):
-                    sel_msg += ", " + sel_list[i+1]
+                for i in range(len(sel_list) - 2):
+                    sel_msg += ", " + sel_list[i + 1]
                 sel_msg += " and " + sel_list[-1]
 
         self.form.rb_standard.setText(sel_rb_text)
 
-        self.selection_mode_std_print_message = "Select {} by single-clicking on them".format(sel_msg)
-        self.selection_mode_solid_print_message = "Select solids by single-clicking on a face or edge which belongs " \
-                                                  "to the solid"
+        self.selection_mode_std_print_message = "Select {} by single-clicking on them".format(
+            sel_msg
+        )
+        self.selection_mode_solid_print_message = (
+            "Select solids by single-clicking on a face or edge which belongs " "to the solid"
+        )
         if self.allow_obj_sel:
             self.selection_mode_std_print_message += ", or entire object by double-clicking on it."
-            self.selection_mode_solid_print_message += ", or entire object by double-clicking on it."
+            self.selection_mode_solid_print_message += (
+                ", or entire object by double-clicking on it."
+            )
         else:
             self.selection_mode_std_print_message += "."
             self.selection_mode_solid_print_message += "."
 
-        exclusive_sel = (not allow_solid_sel) or not (allow_face_sel or allow_edge_sel or allow_point_sel)
+        exclusive_sel = (not allow_solid_sel) or not (
+            allow_face_sel or allow_edge_sel or allow_point_sel
+        )
         self.form.labelSelection.setVisible(not exclusive_sel)
         self.form.rb_standard.setVisible(not exclusive_sel)
         self.form.rb_solid.setVisible(not exclusive_sel)
@@ -118,10 +135,18 @@ class CfdFaceSelectWidget:
 
         for i in FreeCADGui.ActiveDocument.Document.Objects:
             if "Shape" in i.PropertiesList:
-                if not i.Shape.isNull() and \
-                        not (hasattr(i, 'Proxy') and isinstance(i.Proxy, CfdFluidBoundary.CfdFluidBoundary)) and \
-                        not (hasattr(i, 'Proxy') and isinstance(i.Proxy, CfdMeshRefinement.CfdMeshRefinement)) and \
-                        not (hasattr(i, 'Proxy') and isinstance(i.Proxy, CfdZone.CfdZone)):
+                if (
+                    not i.Shape.isNull()
+                    and not (
+                        hasattr(i, "Proxy")
+                        and isinstance(i.Proxy, CfdFluidBoundary.CfdFluidBoundary)
+                    )
+                    and not (
+                        hasattr(i, "Proxy")
+                        and isinstance(i.Proxy, CfdMeshRefinement.CfdMeshRefinement)
+                    )
+                    and not (hasattr(i, "Proxy") and isinstance(i.Proxy, CfdZone.CfdZone))
+                ):
                     self.shapeNames.append(i.Name)
                     self.shapeLabels.append(i.Label)
 
@@ -141,8 +166,10 @@ class CfdFaceSelectWidget:
         self.form.faceListWidget.itemChanged.connect(self.faceListItemChanged)
         self.form.selectAllButton.clicked.connect(self.selectAllButtonClicked)
         self.form.selectNoneButton.clicked.connect(self.selectNoneButtonClicked)
-        self.form.objectListWidget.setToolTip("Choose solid objects from the list and optionally select one or more of "
-                                              "the sub-components associated with the currently selected shape.")
+        self.form.objectListWidget.setToolTip(
+            "Choose solid objects from the list and optionally select one or more of "
+            "the sub-components associated with the currently selected shape."
+        )
         self.form.tabWidget.currentChanged.connect(self.tabChanged)
 
         self.rebuildReferenceList()
@@ -166,7 +193,7 @@ class CfdFaceSelectWidget:
                 FreeCADGui.Selection.addSelection(selection_object, [str(sub)])
 
     def addSelectionToRefList(self):
-        """ Add currently selected objects to reference list. """
+        """Add currently selected objects to reference list."""
         for sel in FreeCADGui.Selection.getSelectionEx():
             if sel.HasSubObjects:
                 for sub in sel.SubElementNames:
@@ -253,66 +280,85 @@ class CfdFaceSelectWidget:
             return
 
         # On double click of a shape, sub is None and obj is the shape
-        print('Selection: ' + selected_object.Shape.ShapeType + '  ' + selected_object.Name + ':' +
-              str(sub) + " @ " + str(selected_point))
+        print(
+            "Selection: "
+            + selected_object.Shape.ShapeType
+            + "  "
+            + selected_object.Name
+            + ":"
+            + str(sub)
+            + " @ "
+            + str(selected_point)
+        )
         if hasattr(selected_object, "Shape"):
             if sub:
-                if sub.startswith('Solid'):  # getElement doesn't work for solids
-                    elt = selected_object.Shape.Solids[int(sub.lstrip('Solid')) - 1]
+                if sub.startswith("Solid"):  # getElement doesn't work for solids
+                    elt = selected_object.Shape.Solids[int(sub.lstrip("Solid")) - 1]
                 else:
                     elt = selected_object.Shape.getElement(sub)
             else:
                 elt = selected_object.Shape
             selection = None
             if as_is:
-                selection = (selected_object, (sub if sub else '',))
-            elif self.allow_obj_sel and \
-                    (elt.ShapeType == 'Shell' or elt.ShapeType == 'Solid' or elt.ShapeType == 'Compound'):
-                selection = (selected_object, ('',))
+                selection = (selected_object, (sub if sub else "",))
+            elif self.allow_obj_sel and (
+                elt.ShapeType == "Shell" or elt.ShapeType == "Solid" or elt.ShapeType == "Compound"
+            ):
+                selection = (selected_object, ("",))
             elif self.selection_mode_solid:
                 # in solid selection mode use edges and faces for selection of a solid
                 solid_to_add = None
-                if elt.ShapeType == 'Edge':
+                if elt.ShapeType == "Edge":
                     found_edge = False
                     for i, s in enumerate(selected_object.Shape.Solids):
                         for e in s.Edges:
                             if elt.isSame(e):
                                 if not found_edge:
-                                    solid_to_add = 'Solid' + str(i + 1)
+                                    solid_to_add = "Solid" + str(i + 1)
                                 else:
-                                    FreeCAD.Console.PrintMessage('Edge belongs to more than one solid\n')
+                                    FreeCAD.Console.PrintMessage(
+                                        "Edge belongs to more than one solid\n"
+                                    )
                                     solid_to_add = None
                                 found_edge = True
-                elif elt.ShapeType == 'Face':
+                elif elt.ShapeType == "Face":
                     found_face = False
                     for i, s in enumerate(selected_object.Shape.Solids):
                         for e in s.Faces:
                             if elt.isSame(e):
                                 if not found_face:
-                                    solid_to_add = 'Solid' + str(i + 1)
+                                    solid_to_add = "Solid" + str(i + 1)
                                 else:
-                                    FreeCAD.Console.PrintMessage('Face belongs to more than one solid\n')
+                                    FreeCAD.Console.PrintMessage(
+                                        "Face belongs to more than one solid\n"
+                                    )
                                     solid_to_add = None
                                 found_face = True
-                elif elt.ShapeType == 'Solid':
+                elif elt.ShapeType == "Solid":
                     solid_to_add = sub
                 if solid_to_add:
                     selection = (selected_object, (solid_to_add,))
-                    print('Selection element changed to Solid: ' +
-                          selected_object.Shape.ShapeType + '  ' +
-                          selection[0].Name + '  ' +
-                          selection[1][0])
+                    print(
+                        "Selection element changed to Solid: "
+                        + selected_object.Shape.ShapeType
+                        + "  "
+                        + selection[0].Name
+                        + "  "
+                        + selection[1][0]
+                    )
             else:
                 # Allow Vertex, Edge, Face or just Face selection
-                if (elt.ShapeType == 'Face' and self.allow_face_sel) or \
-                        (elt.ShapeType == 'Edge' and self.allow_edge_sel) or \
-                        (elt.ShapeType == 'Vertex' and self.allow_point_sel):
+                if (
+                    (elt.ShapeType == "Face" and self.allow_face_sel)
+                    or (elt.ShapeType == "Edge" and self.allow_edge_sel)
+                    or (elt.ShapeType == "Vertex" and self.allow_point_sel)
+                ):
                     selection = (selected_object, (sub,))
             if selection:
                 # Override sub-selections with whole-object selection
                 if not selection[1][0]:
                     for ref in self.ShapeRefs:
-                        if ref[0] == selection[0] and ref[1] != ('',):
+                        if ref[0] == selection[0] and ref[1] != ("",):
                             self.ShapeRefs.remove(ref)
                             break
                 if selection not in self.ShapeRefs:
@@ -320,10 +366,15 @@ class CfdFaceSelectWidget:
                 else:
                     if not selection[1][0]:
                         FreeCAD.Console.PrintMessage(
-                            selection[0].Name + ' already in reference list\n')
+                            selection[0].Name + " already in reference list\n"
+                        )
                     else:
                         FreeCAD.Console.PrintMessage(
-                            selection[0].Name + ':' + selection[1][0] + ' already in reference list\n')
+                            selection[0].Name
+                            + ":"
+                            + selection[1][0]
+                            + " already in reference list\n"
+                        )
             self.rebuildReferenceList()
             self.scheduleRecompute()
         self.updateSelectionbuttonUI()
@@ -350,7 +401,7 @@ class CfdFaceSelectWidget:
                 listItem = self.form.objectListWidget.item(idx)
                 for rr in ref[1]:
                     if rr:
-                        item_label = self.shapeLabels[idx] + ':' + rr
+                        item_label = self.shapeLabels[idx] + ":" + rr
                         if self.allow_obj_sel:
                             if listItem.checkState() == QtCore.Qt.Unchecked:
                                 listItem.setCheckState(QtCore.Qt.PartiallyChecked)
@@ -469,14 +520,16 @@ class CfdFaceSelectWidget:
 
     def hideObjects(self):
         for i in FreeCADGui.ActiveDocument.Document.Objects:
-            if 'Shape' in i.PropertiesList and len(i.Shape.Faces):
+            if "Shape" in i.PropertiesList and len(i.Shape.Faces):
                 FreeCADGui.hideObject(i)
         self.view_object.show()
 
     def faceHighlightChange(self):
         FreeCADGui.Selection.clearSelection()
         if self.form.faceListWidget.currentItem():
-            FreeCADGui.Selection.addSelection(self.shapeObj, self.form.faceListWidget.currentItem().text())
+            FreeCADGui.Selection.addSelection(
+                self.shapeObj, self.form.faceListWidget.currentItem().text()
+            )
         self.scheduleRecompute()
 
     def faceListItemChanged(self, item):
@@ -485,7 +538,7 @@ class CfdFaceSelectWidget:
         if item.checkState() == QtCore.Qt.Checked:
             # If current object was already added in its entirety, remove it since we are now editing on the face level
             for ref in self.ShapeRefs:
-                if ref[0].Name == object_name and ref[1] == ('',):
+                if ref[0].Name == object_name and ref[1] == ("",):
                     self.ShapeRefs.remove(ref)
             self.addSelection(self.doc_name, object_name, face_name, as_is=True)
         else:
@@ -512,7 +565,7 @@ class CfdFaceSelectWidget:
             item.setCheckState(QtCore.Qt.Unchecked)
 
     def scheduleRecompute(self):
-        """ Only do one (costly) recompute when done processing - call this in preference to document.recompute() """
+        """Only do one (costly) recompute when done processing - call this in preference to document.recompute()"""
         self.recompute_timer.start()
 
     def recomputeDocument(self):
@@ -521,7 +574,7 @@ class CfdFaceSelectWidget:
         FreeCAD.getDocument(self.doc_name).recompute()
 
     def closing(self):
-        """ Call this on close to let the widget to its proper cleanup """
+        """Call this on close to let the widget to its proper cleanup"""
         FreeCADGui.Selection.removeObserver(self)
 
     def __del__(self):

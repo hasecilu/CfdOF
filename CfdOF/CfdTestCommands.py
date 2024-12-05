@@ -36,10 +36,10 @@ class CommandCfdRunTests:
         pass
 
     def GetResources(self):
-        return {'MenuText': QT_TRANSLATE_NOOP("CfdOF_RunTests",
-                                                     "Run CfdOF tests"),
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_RunTests",
-                                                    "Run CfdOF tests")}
+        return {
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_RunTests", "Run CfdOF tests"),
+            "ToolTip": QT_TRANSLATE_NOOP("CfdOF_RunTests", "Run CfdOF tests"),
+        }
 
     def IsActive(self):
         return True
@@ -54,10 +54,12 @@ class CommandCfdUpdateTestData:
         pass
 
     def GetResources(self):
-        return {'MenuText': QT_TRANSLATE_NOOP("CfdOF_UpdateTestData",
-                                                     "Update test reference data"),
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_UpdateTestData",
-                                                    "Use latest test run as new reference data for tests")}
+        return {
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_UpdateTestData", "Update test reference data"),
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_UpdateTestData", "Use latest test run as new reference data for tests"
+            ),
+        }
 
     def IsActive(self):
         return True
@@ -72,10 +74,12 @@ class CommandCfdCleanTests:
         pass
 
     def GetResources(self):
-        return {'MenuText': QT_TRANSLATE_NOOP("CfdOF_CleanTests",
-                                                     "Clean CfdOF tests"),
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_CleanTests",
-                                                    "Clean up temporary data created by CfdOF unit tests")}
+        return {
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_CleanTests", "Clean CfdOF tests"),
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_CleanTests", "Clean up temporary data created by CfdOF unit tests"
+            ),
+        }
 
     def IsActive(self):
         return True

@@ -31,6 +31,7 @@ from PySide import QtCore
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
+
 def makeCfdScalarTransportFunction(name="ScalarTransportFunction"):
     obj = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", name)
     CfdScalarTransportFunction(obj)
@@ -46,11 +47,15 @@ class CommandCfdScalarTransportFunction:
 
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "scalartransport.svg")
-        return {'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_ScalarTransportFunctions",
-                                                     "Cfd scalar transport function"),
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_ScalarTransportFunctions",
-                                                    "Create a scalar transport function")}
+        return {
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP(
+                "CfdOF_ScalarTransportFunctions", "Cfd scalar transport function"
+            ),
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_ScalarTransportFunctions", "Create a scalar transport function"
+            ),
+        }
 
     def IsActive(self):
         return CfdTools.getActiveAnalysis() is not None
@@ -61,7 +66,8 @@ class CommandCfdScalarTransportFunction:
         FreeCADGui.doCommand("from CfdOF.Solve import CfdScalarTransportFunction")
         FreeCADGui.doCommand("from CfdOF import CfdTools")
         FreeCADGui.doCommand(
-            "CfdTools.getActiveAnalysis().addObject(CfdScalarTransportFunction.makeCfdScalarTransportFunction())")
+            "CfdTools.getActiveAnalysis().addObject(CfdScalarTransportFunction.makeCfdScalarTransportFunction())"
+        )
         FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)
 
 
@@ -74,27 +80,69 @@ class CfdScalarTransportFunction:
         self.initProperties(obj)
 
     def initProperties(self, obj):
-        addObjectProperty(obj, 'FieldName', "S", "App::PropertyString", "Scalar transport",
-                          "Name of the scalar transport field")
+        addObjectProperty(
+            obj,
+            "FieldName",
+            "S",
+            "App::PropertyString",
+            "Scalar transport",
+            "Name of the scalar transport field",
+        )
 
-        addObjectProperty(obj, 'DiffusivityFixed', False, "App::PropertyBool", "Scalar transport",
-                          "Use fixed value for diffusivity rather than viscosity")
+        addObjectProperty(
+            obj,
+            "DiffusivityFixed",
+            False,
+            "App::PropertyBool",
+            "Scalar transport",
+            "Use fixed value for diffusivity rather than viscosity",
+        )
 
         # This is actually rho*diffusivity, but this is what OpenFOAM uses
-        addObjectProperty(obj, 'DiffusivityFixedValue', "0.001 kg/m/s", "App::PropertyQuantity", "Scalar transport",
-                          "Diffusion coefficient for fixed diffusivity")
+        addObjectProperty(
+            obj,
+            "DiffusivityFixedValue",
+            "0.001 kg/m/s",
+            "App::PropertyQuantity",
+            "Scalar transport",
+            "Diffusion coefficient for fixed diffusivity",
+        )
 
-        addObjectProperty(obj, 'RestrictToPhase', False, "App::PropertyBool", "Scalar transport",
-                          "Restrict transport within phase")
-        
-        addObjectProperty(obj, 'PhaseName', "water", "App::PropertyString", "Scalar transport",
-                          "Transport within phase")
+        addObjectProperty(
+            obj,
+            "RestrictToPhase",
+            False,
+            "App::PropertyBool",
+            "Scalar transport",
+            "Restrict transport within phase",
+        )
 
-        addObjectProperty(obj, 'InjectionRate', '1 kg/s', "App::PropertyQuantity", "Scalar transport",
-                          "Injection rate")
+        addObjectProperty(
+            obj,
+            "PhaseName",
+            "water",
+            "App::PropertyString",
+            "Scalar transport",
+            "Transport within phase",
+        )
 
-        addObjectProperty(obj, 'InjectionPoint', FreeCAD.Vector(0, 0, 0), "App::PropertyPosition", "Scalar transport",
-                          "Location of the injection point")
+        addObjectProperty(
+            obj,
+            "InjectionRate",
+            "1 kg/s",
+            "App::PropertyQuantity",
+            "Scalar transport",
+            "Injection rate",
+        )
+
+        addObjectProperty(
+            obj,
+            "InjectionPoint",
+            FreeCAD.Vector(0, 0, 0),
+            "App::PropertyPosition",
+            "Scalar transport",
+            "Location of the injection point",
+        )
 
     def onDocumentRestored(self, obj):
         self.initProperties(obj)
@@ -145,7 +193,7 @@ class ViewProviderCfdScalarTransportFunction:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Task dialog already active\n')
+            FreeCAD.Console.PrintError("Task dialog already active\n")
             FreeCADGui.Control.showTaskView()
         return True
 
@@ -157,8 +205,11 @@ class ViewProviderCfdScalarTransportFunction:
 
         from CfdOF.Solve import TaskPanelCfdScalarTransportFunctions
         import importlib
+
         importlib.reload(TaskPanelCfdScalarTransportFunctions)
-        taskd = TaskPanelCfdScalarTransportFunctions.TaskPanelCfdScalarTransportFunctions(self.Object)
+        taskd = TaskPanelCfdScalarTransportFunctions.TaskPanelCfdScalarTransportFunctions(
+            self.Object
+        )
         taskd.obj = vobj.Object
         FreeCADGui.Control.showDialog(taskd)
         return True
@@ -182,7 +233,8 @@ class ViewProviderCfdScalarTransportFunction:
 
 
 class _ViewProviderCfdScalarTransportFunction:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def attach(self, vobj):
         new_proxy = ViewProviderCfdScalarTransportFunction(vobj)
         new_proxy.attach(vobj)

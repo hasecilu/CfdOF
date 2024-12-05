@@ -25,6 +25,7 @@ import os
 import os.path
 import numpy
 import FreeCAD
+
 if FreeCAD.GuiUp:
     import FreeCADGui
 from CfdOF import CfdTools
@@ -34,7 +35,8 @@ from CfdOF import CfdFaceSelectWidget
 
 
 class TaskPanelCfdZone:
-    """ Task panel for zone objects """
+    """Task panel for zone objects"""
+
     def __init__(self, obj):
         FreeCADGui.Selection.clearSelection()
         self.sel_server = None
@@ -44,14 +46,16 @@ class TaskPanelCfdZone:
         self.ShapeRefsOrig = list(self.obj.ShapeRefs)
         self.NeedsCaseRewriteOrig = self.analysis_obj.NeedsCaseRewrite
 
-        self.form = FreeCADGui.PySideUic.loadUi(os.path.join(CfdTools.getModulePath(), 'Gui', "TaskPanelCfdZone.ui"))
+        self.form = FreeCADGui.PySideUic.loadUi(
+            os.path.join(CfdTools.getModulePath(), "Gui", "TaskPanelCfdZone.ui")
+        )
 
         self.form.framePorousZone.setVisible(False)
         self.form.frameInitialisationZone.setVisible(False)
 
         self.alphas = {}
 
-        if self.obj.Name.startswith('PorousZone'):
+        if self.obj.Name.startswith("PorousZone"):
             self.form.framePorousZone.setVisible(True)
 
             self.form.comboBoxCorrelation.currentIndexChanged.connect(self.updateUI)
@@ -82,7 +86,7 @@ class TaskPanelCfdZone:
             self.form.comboBoxCorrelation.addItems(CfdZone.POROUS_CORRELATION_NAMES)
             self.form.comboAspectRatio.addItems(CfdZone.ASPECT_RATIO_NAMES)
 
-        elif self.obj.Name.startswith('InitialisationZone'):
+        elif self.obj.Name.startswith("InitialisationZone"):
             self.form.frameInitialisationZone.setVisible(True)
 
             self.form.comboFluid.currentIndexChanged.connect(self.comboFluidChanged)
@@ -99,18 +103,19 @@ class TaskPanelCfdZone:
                 self.form.comboFluid.addItems(fluid_names[:-1])
 
             physics_obj = CfdTools.getPhysicsModel(self.analysis_obj)
-            self.form.frameTemperature.setVisible(physics_obj.Flow != 'Isothermal')
+            self.form.frameTemperature.setVisible(physics_obj.Flow != "Isothermal")
 
         self.load()
         self.comboFluidChanged()
         self.updateUI()
 
         # Face list selection panel - modifies obj.ShapeRefs passed to it
-        self.faceSelector = CfdFaceSelectWidget.CfdFaceSelectWidget(self.form.faceSelectWidget,
-                                                                    self.obj, False, False, True)
+        self.faceSelector = CfdFaceSelectWidget.CfdFaceSelectWidget(
+            self.form.faceSelectWidget, self.obj, False, False, True
+        )
 
     def load(self):
-        if self.obj.Name.startswith('PorousZone'):
+        if self.obj.Name.startswith("PorousZone"):
             ci = indexOrDefault(CfdZone.POROUS_CORRELATIONS, self.obj.PorousCorrelation, 0)
             self.form.comboBoxCorrelation.setCurrentIndex(ci)
             setQuantity(self.form.dx, self.obj.D1)
@@ -144,7 +149,7 @@ class TaskPanelCfdZone:
             setQuantity(self.form.inputAspectRatio, self.obj.AspectRatio)
             setQuantity(self.form.inputVelocityEstimate, self.obj.VelocityEstimate)
 
-        elif self.obj.Name.startswith('InitialisationZone'):
+        elif self.obj.Name.startswith("InitialisationZone"):
             self.form.checkVelocity.setChecked(self.obj.VelocitySpecified)
             setQuantity(self.form.inputUx, self.obj.Ux)
             setQuantity(self.form.inputUy, self.obj.Uy)
@@ -158,8 +163,10 @@ class TaskPanelCfdZone:
 
     def updateUI(self):
         method = self.form.comboBoxCorrelation.currentIndex()
-        self.form.frameDarcyForchheimer.setVisible(CfdZone.POROUS_CORRELATIONS[method] == 'DarcyForchheimer')
-        self.form.frameJakob.setVisible(CfdZone.POROUS_CORRELATIONS[method] == 'Jakob')
+        self.form.frameDarcyForchheimer.setVisible(
+            CfdZone.POROUS_CORRELATIONS[method] == "DarcyForchheimer"
+        )
+        self.form.frameJakob.setVisible(CfdZone.POROUS_CORRELATIONS[method] == "Jakob")
         self.form.comboBoxCorrelation.setToolTip(CfdZone.POROUS_CORRELATION_TIPS[method])
 
         velo_checked = self.form.checkVelocity.isChecked()
@@ -200,15 +207,23 @@ class TaskPanelCfdZone:
             self.lastEVectorChanged = index
 
     def eDone(self, index):
-        e = [[self.form.e1x.property('quantity').getValueAs('1').Value,
-              self.form.e1y.property('quantity').getValueAs('1').Value,
-              self.form.e1z.property('quantity').getValueAs('1').Value],
-             [self.form.e2x.property('quantity').getValueAs('1').Value,
-              self.form.e2y.property('quantity').getValueAs('1').Value,
-              self.form.e2z.property('quantity').getValueAs('1').Value],
-             [self.form.e3x.property('quantity').getValueAs('1').Value,
-              self.form.e3y.property('quantity').getValueAs('1').Value,
-              self.form.e3z.property('quantity').getValueAs('1').Value]]
+        e = [
+            [
+                self.form.e1x.property("quantity").getValueAs("1").Value,
+                self.form.e1y.property("quantity").getValueAs("1").Value,
+                self.form.e1z.property("quantity").getValueAs("1").Value,
+            ],
+            [
+                self.form.e2x.property("quantity").getValueAs("1").Value,
+                self.form.e2y.property("quantity").getValueAs("1").Value,
+                self.form.e2z.property("quantity").getValueAs("1").Value,
+            ],
+            [
+                self.form.e3x.property("quantity").getValueAs("1").Value,
+                self.form.e3y.property("quantity").getValueAs("1").Value,
+                self.form.e3z.property("quantity").getValueAs("1").Value,
+            ],
+        ]
         for i in range(3):
             e[i] = CfdTools.normalise(e[i])
 
@@ -256,61 +271,73 @@ class TaskPanelCfdZone:
     def accept(self):
         self.analysis_obj.NeedsCaseRewrite = self.NeedsCaseRewriteOrig
 
-        if self.obj.Name.startswith('PorousZone'):
-            storeIfChanged(self.obj, 'PorousCorrelation',
-                CfdZone.POROUS_CORRELATIONS[self.form.comboBoxCorrelation.currentIndex()])
-            storeIfChanged(self.obj, 'D1', getQuantity(self.form.dx))
-            storeIfChanged(self.obj, 'D2', getQuantity(self.form.dy))
-            storeIfChanged(self.obj, 'D3', getQuantity(self.form.dz))
-            storeIfChanged(self.obj, 'F1', getQuantity(self.form.fx))
-            storeIfChanged(self.obj, 'F2', getQuantity(self.form.fy))
-            storeIfChanged(self.obj, 'F3', getQuantity(self.form.fz))
+        if self.obj.Name.startswith("PorousZone"):
+            storeIfChanged(
+                self.obj,
+                "PorousCorrelation",
+                CfdZone.POROUS_CORRELATIONS[self.form.comboBoxCorrelation.currentIndex()],
+            )
+            storeIfChanged(self.obj, "D1", getQuantity(self.form.dx))
+            storeIfChanged(self.obj, "D2", getQuantity(self.form.dy))
+            storeIfChanged(self.obj, "D3", getQuantity(self.form.dz))
+            storeIfChanged(self.obj, "F1", getQuantity(self.form.fx))
+            storeIfChanged(self.obj, "F2", getQuantity(self.form.fy))
+            storeIfChanged(self.obj, "F3", getQuantity(self.form.fz))
             e1 = FreeCAD.Vector(
-                self.form.e1x.property('quantity').getValueAs("1").Value,
-                self.form.e1y.property('quantity').getValueAs("1").Value,
-                self.form.e1z.property('quantity').getValueAs("1").Value)
+                self.form.e1x.property("quantity").getValueAs("1").Value,
+                self.form.e1y.property("quantity").getValueAs("1").Value,
+                self.form.e1z.property("quantity").getValueAs("1").Value,
+            )
             e2 = FreeCAD.Vector(
-                self.form.e2x.property('quantity').getValueAs("1").Value,
-                self.form.e2y.property('quantity').getValueAs("1").Value,
-                self.form.e2z.property('quantity').getValueAs("1").Value)
+                self.form.e2x.property("quantity").getValueAs("1").Value,
+                self.form.e2y.property("quantity").getValueAs("1").Value,
+                self.form.e2z.property("quantity").getValueAs("1").Value,
+            )
             e3 = FreeCAD.Vector(
-                self.form.e3x.property('quantity').getValueAs("1").Value,
-                self.form.e3y.property('quantity').getValueAs("1").Value,
-                self.form.e3z.property('quantity').getValueAs("1").Value)
-            storeIfChanged(self.obj, 'e1', e1)
-            storeIfChanged(self.obj, 'e2', e2)
-            storeIfChanged(self.obj, 'e3', e3)
-            storeIfChanged(self.obj, 'OuterDiameter', getQuantity(self.form.inputOuterDiameter))
+                self.form.e3x.property("quantity").getValueAs("1").Value,
+                self.form.e3y.property("quantity").getValueAs("1").Value,
+                self.form.e3z.property("quantity").getValueAs("1").Value,
+            )
+            storeIfChanged(self.obj, "e1", e1)
+            storeIfChanged(self.obj, "e2", e2)
+            storeIfChanged(self.obj, "e3", e3)
+            storeIfChanged(self.obj, "OuterDiameter", getQuantity(self.form.inputOuterDiameter))
             tube_axis = FreeCAD.Vector(
-                self.form.inputTubeAxisX.property('quantity').getValueAs("1").Value,
-                self.form.inputTubeAxisY.property('quantity').getValueAs("1").Value,
-                self.form.inputTubeAxisZ.property('quantity').getValueAs("1").Value)
-            storeIfChanged(self.obj, 'TubeAxis', tube_axis)
-            storeIfChanged(self.obj, 'TubeSpacing', getQuantity(self.form.inputTubeSpacing))
+                self.form.inputTubeAxisX.property("quantity").getValueAs("1").Value,
+                self.form.inputTubeAxisY.property("quantity").getValueAs("1").Value,
+                self.form.inputTubeAxisZ.property("quantity").getValueAs("1").Value,
+            )
+            storeIfChanged(self.obj, "TubeAxis", tube_axis)
+            storeIfChanged(self.obj, "TubeSpacing", getQuantity(self.form.inputTubeSpacing))
             spacing_direction = FreeCAD.Vector(
-                self.form.inputBundleLayerNormalX.property('quantity').getValueAs("1").Value,
-                self.form.inputBundleLayerNormalY.property('quantity').getValueAs("1").Value,
-                self.form.inputBundleLayerNormalZ.property('quantity').getValueAs("1").Value)
-            storeIfChanged(self.obj, 'SpacingDirection', spacing_direction)
-            storeIfChanged(self.obj, 'AspectRatio', getQuantity(self.form.inputAspectRatio))
-            storeIfChanged(self.obj, 'VelocityEstimate', getQuantity(self.form.inputVelocityEstimate))
+                self.form.inputBundleLayerNormalX.property("quantity").getValueAs("1").Value,
+                self.form.inputBundleLayerNormalY.property("quantity").getValueAs("1").Value,
+                self.form.inputBundleLayerNormalZ.property("quantity").getValueAs("1").Value,
+            )
+            storeIfChanged(self.obj, "SpacingDirection", spacing_direction)
+            storeIfChanged(self.obj, "AspectRatio", getQuantity(self.form.inputAspectRatio))
+            storeIfChanged(
+                self.obj, "VelocityEstimate", getQuantity(self.form.inputVelocityEstimate)
+            )
 
-        elif self.obj.Name.startswith('InitialisationZone'):
-            storeIfChanged(self.obj, 'VelocitySpecified', self.form.checkVelocity.isChecked())
-            storeIfChanged(self.obj, 'Ux', getQuantity(self.form.inputUx))
-            storeIfChanged(self.obj, 'Uy', getQuantity(self.form.inputUy))
-            storeIfChanged(self.obj, 'Uz', getQuantity(self.form.inputUz))
-            storeIfChanged(self.obj, 'PressureSpecified', self.form.checkPressure.isChecked())
-            storeIfChanged(self.obj, 'Pressure', getQuantity(self.form.inputPressure))
-            storeIfChanged(self.obj, 'TemperatureSpecified', self.form.checkTemperature.isChecked())
-            storeIfChanged(self.obj, 'Temperature', getQuantity(self.form.inputTemperature))
-            storeIfChanged(self.obj, 'VolumeFractionSpecified', self.form.checkAlpha.isChecked())
-            storeIfChanged(self.obj, 'VolumeFractions', self.alphas)
+        elif self.obj.Name.startswith("InitialisationZone"):
+            storeIfChanged(self.obj, "VelocitySpecified", self.form.checkVelocity.isChecked())
+            storeIfChanged(self.obj, "Ux", getQuantity(self.form.inputUx))
+            storeIfChanged(self.obj, "Uy", getQuantity(self.form.inputUy))
+            storeIfChanged(self.obj, "Uz", getQuantity(self.form.inputUz))
+            storeIfChanged(self.obj, "PressureSpecified", self.form.checkPressure.isChecked())
+            storeIfChanged(self.obj, "Pressure", getQuantity(self.form.inputPressure))
+            storeIfChanged(self.obj, "TemperatureSpecified", self.form.checkTemperature.isChecked())
+            storeIfChanged(self.obj, "Temperature", getQuantity(self.form.inputTemperature))
+            storeIfChanged(self.obj, "VolumeFractionSpecified", self.form.checkAlpha.isChecked())
+            storeIfChanged(self.obj, "VolumeFractions", self.alphas)
 
         if self.obj.ShapeRefs != self.ShapeRefsOrig:
             refstr = "FreeCAD.ActiveDocument.{}.ShapeRefs = [\n".format(self.obj.Name)
-            refstr += ',\n'.join(
-                "(FreeCAD.ActiveDocument.getObject('{}'), {})".format(ref[0].Name, ref[1]) for ref in self.obj.ShapeRefs)
+            refstr += ",\n".join(
+                "(FreeCAD.ActiveDocument.getObject('{}'), {})".format(ref[0].Name, ref[1])
+                for ref in self.obj.ShapeRefs
+            )
             refstr += "]"
             FreeCADGui.doCommand(refstr)
 

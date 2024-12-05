@@ -25,6 +25,7 @@ import os
 import os.path
 import FreeCAD
 import Part
+
 if FreeCAD.GuiUp:
     import FreeCADGui
     from PySide import QtCore
@@ -34,19 +35,24 @@ from CfdOF.CfdTools import addObjectProperty
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
 # Constants
-POROUS_CORRELATIONS = ['DarcyForchheimer', 'Jakob']
+POROUS_CORRELATIONS = ["DarcyForchheimer", "Jakob"]
 POROUS_CORRELATION_NAMES = ["Darcy-Forchheimer coefficients", "Staggered tube bundle (Jakob)"]
-POROUS_CORRELATION_TIPS = ["Specify viscous and inertial drag tensors by giving their principal components and "
-                           "directions (these will be made orthogonal)", 
-                           "Specify geometry of parallel tube bundle with staggered layers."]
+POROUS_CORRELATION_TIPS = [
+    "Specify viscous and inertial drag tensors by giving their principal components and "
+    "directions (these will be made orthogonal)",
+    "Specify geometry of parallel tube bundle with staggered layers.",
+]
 
 ASPECT_RATIOS = ["1.0", "1.73", "1.0"]
 ASPECT_RATIO_NAMES = ["User defined", "Equilateral", "Rotated square"]
-ASPECT_RATIO_TIPS = ["", "Equilateral triangles pointing perpendicular to spacing direction",
-                     "45 degree angles; isotropic"]
+ASPECT_RATIO_TIPS = [
+    "",
+    "Equilateral triangles pointing perpendicular to spacing direction",
+    "45 degree angles; isotropic",
+]
 
 
-def makeCfdPorousZone(name='PorousZone'):
+def makeCfdPorousZone(name="PorousZone"):
     obj = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", name)
     CfdZone(obj)
     if FreeCAD.GuiUp:
@@ -54,7 +60,7 @@ def makeCfdPorousZone(name='PorousZone'):
     return obj
 
 
-def makeCfdInitialisationZone(name='InitialisationZone'):
+def makeCfdInitialisationZone(name="InitialisationZone"):
     obj = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", name)
     CfdZone(obj)
     if FreeCAD.GuiUp:
@@ -65,10 +71,12 @@ def makeCfdInitialisationZone(name='InitialisationZone'):
 class CommandCfdPorousZone:
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "porous.svg")
-        return {'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_PorousZone", "Porous zone"),
-                'Accel': "",
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_PorousZone", "Select and create a porous zone")}
+        return {
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_PorousZone", "Porous zone"),
+            "Accel": "",
+            "ToolTip": QT_TRANSLATE_NOOP("CfdOF_PorousZone", "Select and create a porous zone"),
+        }
 
     def IsActive(self):
         return CfdTools.getActiveAnalysis() is not None
@@ -85,11 +93,14 @@ class CommandCfdPorousZone:
 class CommandCfdInitialisationZone:
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "alpha.svg")
-        return {'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_InitialisationZone", "Initialisation zone"),
-                'Accel': "",
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_InitialisationZone",
-                                                    "Select and create an initialisation zone")}
+        return {
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_InitialisationZone", "Initialisation zone"),
+            "Accel": "",
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_InitialisationZone", "Select and create an initialisation zone"
+            ),
+        }
 
     def IsActive(self):
         return CfdTools.getActiveAnalysis() is not None
@@ -100,84 +111,238 @@ class CommandCfdInitialisationZone:
         FreeCADGui.doCommand("from CfdOF.Solve import CfdZone")
         FreeCADGui.doCommand("from CfdOF import CfdTools")
         FreeCADGui.doCommand(
-            "CfdTools.getActiveAnalysis().addObject(CfdZone.makeCfdInitialisationZone())")
+            "CfdTools.getActiveAnalysis().addObject(CfdZone.makeCfdInitialisationZone())"
+        )
         FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)
 
 
 class CfdZone:
     def __init__(self, obj):
         obj.Proxy = self
-        self.Type = 'Zone'
+        self.Type = "Zone"
         self.initProperties(obj)
 
     def initProperties(self, obj):
-        if addObjectProperty(obj, 'ShapeRefs', [], "App::PropertyLinkSubListGlobal", "", "Boundary faces"):
+        if addObjectProperty(
+            obj, "ShapeRefs", [], "App::PropertyLinkSubListGlobal", "", "Boundary faces"
+        ):
             # Backward compat
-            if 'References' in obj.PropertiesList:
+            if "References" in obj.PropertiesList:
                 doc = FreeCAD.getDocument(obj.Document.Name)
                 for r in obj.References:
                     if not r[1]:
                         obj.ShapeRefs += [doc.getObject(r[0])]
                     else:
                         obj.ShapeRefs += [(doc.getObject(r[0]), r[1])]
-                obj.removeProperty('References')
-                obj.removeProperty('LinkedObjects')
+                obj.removeProperty("References")
+                obj.removeProperty("LinkedObjects")
 
-        if obj.Name.startswith('PorousZone'):
-            if addObjectProperty(obj, 'PorousCorrelation', POROUS_CORRELATIONS, "App::PropertyEnumeration",
-                                 "Porous zone", "Porous drag model"):
-                obj.PorousCorrelation = 'DarcyForchheimer'
-            addObjectProperty(obj, 'D1', '0 1/m^2', "App::PropertyQuantity",
-                              "Darcy-Forchheimer", "Darcy coefficient (direction 1)")
-            addObjectProperty(obj, 'D2', '0 1/m^2', "App::PropertyQuantity",
-                              "Darcy-Forchheimer", "Darcy coefficient (direction 2)")
-            addObjectProperty(obj, 'D3', '0 1/m^2', "App::PropertyQuantity",
-                              "Darcy-Forchheimer", "Darcy coefficient (direction 3)")
-            addObjectProperty(obj, 'F1', '0 1/m', "App::PropertyQuantity",
-                              "Darcy-Forchheimer", "Forchheimer coefficient (direction 1)")
-            addObjectProperty(obj, 'F2', '0 1/m', "App::PropertyQuantity",
-                              "Darcy-Forchheimer", "Forchheimer coefficient (direction 2)")
-            addObjectProperty(obj, 'F3', '0 1/m', "App::PropertyQuantity",
-                              "Darcy-Forchheimer", "Forchheimer coefficient (direction 3)")
-            addObjectProperty(obj, 'e1', FreeCAD.Vector(1, 0, 0), "App::PropertyVector",
-                              "Darcy-Forchheimer", "Principal direction 1")
-            addObjectProperty(obj, 'e2', FreeCAD.Vector(0, 1, 0), "App::PropertyVector",
-                              "Darcy-Forchheimer", "Principal direction 2")
-            addObjectProperty(obj, 'e3', FreeCAD.Vector(0, 0, 1), "App::PropertyVector",
-                              "Darcy-Forchheimer", "Principal direction 3")
-            addObjectProperty(obj, 'OuterDiameter', '0 m', "App::PropertyLength",
-                              "Jakob", "Tube diameter")
-            addObjectProperty(obj, 'TubeAxis', FreeCAD.Vector(0, 0, 1), "App::PropertyVector",
-                              "Jakob", "Direction parallel to tubes")
-            addObjectProperty(obj, 'TubeSpacing', '0 m', "App::PropertyLength",
-                              "Jakob", "Spacing between tube layers")
-            addObjectProperty(obj, 'SpacingDirection', FreeCAD.Vector(1, 0, 0), "App::PropertyVector",
-                              "Jakob", "Direction normal to tube layers")
-            addObjectProperty(obj, 'AspectRatio', '1.73', "App::PropertyQuantity",
-                              "Jakob", "Tube spacing aspect ratio (layer-to-layer : tubes in layer)")
-            addObjectProperty(obj, 'VelocityEstimate', '0 m/s', "App::PropertySpeed",
-                              "Jakob", "Approximate flow velocity")
-        elif obj.Name.startswith('InitialisationZone'):
-            addObjectProperty(obj, "VelocitySpecified", False, "App::PropertyBool",
-                              "Initialisation zone", "Whether the zone initialises velocity")
-            addObjectProperty(obj, 'Ux', '0 m/s', "App::PropertySpeed",
-                              "Initialisation zone", "Velocity (x component)")
-            addObjectProperty(obj, 'Uy', '0 m/s', "App::PropertySpeed",
-                              "Initialisation zone", "Velocity (y component)")
-            addObjectProperty(obj, 'Uz', '0 m/s', "App::PropertySpeed",
-                              "Initialisation zone", "Velocity (z component)")
-            addObjectProperty(obj, "PressureSpecified", False, "App::PropertyBool",
-                              "Initialisation zone", "Whether the zone initialises pressure")
-            addObjectProperty(obj, 'Pressure', '0 kg/m/s^2', "App::PropertyPressure",
-                              "Initialisation zone", "Static pressure")
-            addObjectProperty(obj, "TemperatureSpecified", False, "App::PropertyBool",
-                              "Initialisation zone", "Whether the zone initialises temperature")
-            addObjectProperty(obj, 'Temperature', '293 K', "App::PropertyTemperature",
-                              "Initialisation zone", "Temperature")
-            addObjectProperty(obj, "VolumeFractionSpecified", True, "App::PropertyBool",
-                              "Initialisation zone", "Whether the zone initialises volume fraction")
-            addObjectProperty(obj, "VolumeFractions", {}, "App::PropertyMap",
-                              "Initialisation zone", "Volume fraction values")
+        if obj.Name.startswith("PorousZone"):
+            if addObjectProperty(
+                obj,
+                "PorousCorrelation",
+                POROUS_CORRELATIONS,
+                "App::PropertyEnumeration",
+                "Porous zone",
+                "Porous drag model",
+            ):
+                obj.PorousCorrelation = "DarcyForchheimer"
+            addObjectProperty(
+                obj,
+                "D1",
+                "0 1/m^2",
+                "App::PropertyQuantity",
+                "Darcy-Forchheimer",
+                "Darcy coefficient (direction 1)",
+            )
+            addObjectProperty(
+                obj,
+                "D2",
+                "0 1/m^2",
+                "App::PropertyQuantity",
+                "Darcy-Forchheimer",
+                "Darcy coefficient (direction 2)",
+            )
+            addObjectProperty(
+                obj,
+                "D3",
+                "0 1/m^2",
+                "App::PropertyQuantity",
+                "Darcy-Forchheimer",
+                "Darcy coefficient (direction 3)",
+            )
+            addObjectProperty(
+                obj,
+                "F1",
+                "0 1/m",
+                "App::PropertyQuantity",
+                "Darcy-Forchheimer",
+                "Forchheimer coefficient (direction 1)",
+            )
+            addObjectProperty(
+                obj,
+                "F2",
+                "0 1/m",
+                "App::PropertyQuantity",
+                "Darcy-Forchheimer",
+                "Forchheimer coefficient (direction 2)",
+            )
+            addObjectProperty(
+                obj,
+                "F3",
+                "0 1/m",
+                "App::PropertyQuantity",
+                "Darcy-Forchheimer",
+                "Forchheimer coefficient (direction 3)",
+            )
+            addObjectProperty(
+                obj,
+                "e1",
+                FreeCAD.Vector(1, 0, 0),
+                "App::PropertyVector",
+                "Darcy-Forchheimer",
+                "Principal direction 1",
+            )
+            addObjectProperty(
+                obj,
+                "e2",
+                FreeCAD.Vector(0, 1, 0),
+                "App::PropertyVector",
+                "Darcy-Forchheimer",
+                "Principal direction 2",
+            )
+            addObjectProperty(
+                obj,
+                "e3",
+                FreeCAD.Vector(0, 0, 1),
+                "App::PropertyVector",
+                "Darcy-Forchheimer",
+                "Principal direction 3",
+            )
+            addObjectProperty(
+                obj, "OuterDiameter", "0 m", "App::PropertyLength", "Jakob", "Tube diameter"
+            )
+            addObjectProperty(
+                obj,
+                "TubeAxis",
+                FreeCAD.Vector(0, 0, 1),
+                "App::PropertyVector",
+                "Jakob",
+                "Direction parallel to tubes",
+            )
+            addObjectProperty(
+                obj,
+                "TubeSpacing",
+                "0 m",
+                "App::PropertyLength",
+                "Jakob",
+                "Spacing between tube layers",
+            )
+            addObjectProperty(
+                obj,
+                "SpacingDirection",
+                FreeCAD.Vector(1, 0, 0),
+                "App::PropertyVector",
+                "Jakob",
+                "Direction normal to tube layers",
+            )
+            addObjectProperty(
+                obj,
+                "AspectRatio",
+                "1.73",
+                "App::PropertyQuantity",
+                "Jakob",
+                "Tube spacing aspect ratio (layer-to-layer : tubes in layer)",
+            )
+            addObjectProperty(
+                obj,
+                "VelocityEstimate",
+                "0 m/s",
+                "App::PropertySpeed",
+                "Jakob",
+                "Approximate flow velocity",
+            )
+        elif obj.Name.startswith("InitialisationZone"):
+            addObjectProperty(
+                obj,
+                "VelocitySpecified",
+                False,
+                "App::PropertyBool",
+                "Initialisation zone",
+                "Whether the zone initialises velocity",
+            )
+            addObjectProperty(
+                obj,
+                "Ux",
+                "0 m/s",
+                "App::PropertySpeed",
+                "Initialisation zone",
+                "Velocity (x component)",
+            )
+            addObjectProperty(
+                obj,
+                "Uy",
+                "0 m/s",
+                "App::PropertySpeed",
+                "Initialisation zone",
+                "Velocity (y component)",
+            )
+            addObjectProperty(
+                obj,
+                "Uz",
+                "0 m/s",
+                "App::PropertySpeed",
+                "Initialisation zone",
+                "Velocity (z component)",
+            )
+            addObjectProperty(
+                obj,
+                "PressureSpecified",
+                False,
+                "App::PropertyBool",
+                "Initialisation zone",
+                "Whether the zone initialises pressure",
+            )
+            addObjectProperty(
+                obj,
+                "Pressure",
+                "0 kg/m/s^2",
+                "App::PropertyPressure",
+                "Initialisation zone",
+                "Static pressure",
+            )
+            addObjectProperty(
+                obj,
+                "TemperatureSpecified",
+                False,
+                "App::PropertyBool",
+                "Initialisation zone",
+                "Whether the zone initialises temperature",
+            )
+            addObjectProperty(
+                obj,
+                "Temperature",
+                "293 K",
+                "App::PropertyTemperature",
+                "Initialisation zone",
+                "Temperature",
+            )
+            addObjectProperty(
+                obj,
+                "VolumeFractionSpecified",
+                True,
+                "App::PropertyBool",
+                "Initialisation zone",
+                "Whether the zone initialises volume fraction",
+            )
+            addObjectProperty(
+                obj,
+                "VolumeFractions",
+                {},
+                "App::PropertyMap",
+                "Initialisation zone",
+                "Volume fraction values",
+            )
 
     def onDocumentRestored(self, obj):
         self.initProperties(obj)
@@ -210,7 +375,8 @@ class CfdZone:
 
 
 class _CfdZone:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def onDocumentRestored(self, obj):
         CfdZone(obj)
 
@@ -229,9 +395,10 @@ class _CfdZone:
 
 
 class ViewProviderCfdZone:
-    """ A View Provider for Zone objects. """
+    """A View Provider for Zone objects."""
+
     def __init__(self, vobj):
-        """ Set this object to the proxy object of the actual view provider """
+        """Set this object to the proxy object of the actual view provider"""
         vobj.Proxy = self
         self.taskd = None
 
@@ -249,16 +416,16 @@ class ViewProviderCfdZone:
             analysis_obj.NeedsCaseRewrite = True
 
     def getDisplayModes(self, obj):
-        """ Return a list of display modes. """
+        """Return a list of display modes."""
         modes = []
         return modes
 
     def getDefaultDisplayMode(self):
-        """ Return the name of the default display mode. It must be defined in getDisplayModes. """
+        """Return the name of the default display mode. It must be defined in getDisplayModes."""
         return "Shaded"
 
     def setDisplayMode(self, mode):
-        """ Map the display mode defined in attach with those defined in getDisplayModes. Since they have the same
+        """Map the display mode defined in attach with those defined in getDisplayModes. Since they have the same
         names nothing needs to be done. This method is optional.
         """
         return mode
@@ -267,7 +434,7 @@ class ViewProviderCfdZone:
         return
 
     def getIcon(self):
-        if self.Object.Name.startswith('PorousZone'):
+        if self.Object.Name.startswith("PorousZone"):
             icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "porous.svg")
         else:
             icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "alpha.svg")
@@ -276,6 +443,7 @@ class ViewProviderCfdZone:
     def setEdit(self, vobj, mode):
         from CfdOF.Solve import TaskPanelCfdZone
         import importlib
+
         importlib.reload(TaskPanelCfdZone)
         taskd = TaskPanelCfdZone.TaskPanelCfdZone(self.Object)
         taskd.obj = vobj.Object
@@ -289,7 +457,7 @@ class ViewProviderCfdZone:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Task dialog already active\n')
+            FreeCAD.Console.PrintError("Task dialog already active\n")
             FreeCADGui.Control.showTaskView()
         return True
 
@@ -315,7 +483,8 @@ class ViewProviderCfdZone:
 
 
 class _ViewProviderCfdZone:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def attach(self, vobj):
         new_proxy = ViewProviderCfdZone(vobj)
         new_proxy.attach(vobj)

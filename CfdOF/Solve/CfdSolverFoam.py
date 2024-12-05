@@ -28,6 +28,7 @@ import FreeCAD
 from CfdOF import CfdTools
 from CfdOF.CfdTools import addObjectProperty
 from CfdOF.CfdTimePlot import TimePlot
+
 if FreeCAD.GuiUp:
     import FreeCADGui
 
@@ -48,10 +49,12 @@ def makeCfdSolverFoam(name="CfdSolver"):
 class CommandCfdSolverFoam:
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "solver.svg")
-        return {'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_SolverControl", "Solver job control"),
-                'Accel': "S, C",
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_SolverControl", "Edit properties and run solver")}
+        return {
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_SolverControl", "Solver job control"),
+            "Accel": "S, C",
+            "ToolTip": QT_TRANSLATE_NOOP("CfdOF_SolverControl", "Edit properties and run solver"),
+        }
 
     def IsActive(self):
         return CfdTools.getActiveAnalysis() is not None
@@ -68,12 +71,17 @@ class CommandCfdSolverFoam:
         if not is_present:
             FreeCADGui.doCommand("from CfdOF import CfdTools")
             FreeCADGui.doCommand("from CfdOF.Solve import CfdSolverFoam")
-            FreeCADGui.doCommand("CfdTools.getActiveAnalysis().addObject(CfdSolverFoam.makeCfdSolverFoam())")
-            FreeCADGui.doCommand("Gui.activeDocument().setEdit(App.ActiveDocument.ActiveObject.Name)")
+            FreeCADGui.doCommand(
+                "CfdTools.getActiveAnalysis().addObject(CfdSolverFoam.makeCfdSolverFoam())"
+            )
+            FreeCADGui.doCommand(
+                "Gui.activeDocument().setEdit(App.ActiveDocument.ActiveObject.Name)"
+            )
 
 
 class CfdSolverFoam(object):
-    """ Solver-specific properties """
+    """Solver-specific properties"""
+
     def __init__(self, obj):
         self.Type = "CfdSolverFoam"
         self.Object = obj  # keep a ref to the DocObj for nonGui usage
@@ -82,42 +90,120 @@ class CfdSolverFoam(object):
         self.initProperties(obj)
 
     def initProperties(self, obj):
-        addObjectProperty(obj, "InputCaseName", "case", "App::PropertyFile", "Solver",
-                          "Name of case directory where the input files are written")
-        addObjectProperty(obj, "Parallel", True, "App::PropertyBool", "Solver",
-                          "Parallel analysis on multiple CPU cores")
-        addObjectProperty(obj, "ParallelCores", 4, "App::PropertyInteger", "Solver",
-                          "Number of cores on which to run parallel analysis")
-        addObjectProperty(obj, "PurgeWrite", 0, "App::PropertyInteger", "Solver",
-                          "Sets a limit on the number of time directories that are stored by overwriting time directories on a cyclic basis.  Set to 0 to disable")
+        addObjectProperty(
+            obj,
+            "InputCaseName",
+            "case",
+            "App::PropertyFile",
+            "Solver",
+            "Name of case directory where the input files are written",
+        )
+        addObjectProperty(
+            obj,
+            "Parallel",
+            True,
+            "App::PropertyBool",
+            "Solver",
+            "Parallel analysis on multiple CPU cores",
+        )
+        addObjectProperty(
+            obj,
+            "ParallelCores",
+            4,
+            "App::PropertyInteger",
+            "Solver",
+            "Number of cores on which to run parallel analysis",
+        )
+        addObjectProperty(
+            obj,
+            "PurgeWrite",
+            0,
+            "App::PropertyInteger",
+            "Solver",
+            "Sets a limit on the number of time directories that are stored by overwriting time directories on a cyclic basis.  Set to 0 to disable",
+        )
 
-        addObjectProperty(obj, "MaxIterations", 2000, "App::PropertyInteger", "IterationControl",
-                          "Maximum number of iterations to run steady-state analysis")
-        addObjectProperty(obj, "SteadyWriteInterval", 100, "App::PropertyInteger", "IterationControl",
-                          "Iteration output interval")
-        addObjectProperty(obj, "ConvergenceTol", 1e-3, "App::PropertyFloat", "IterationControl",
-                          "Global absolute solution convergence criterion")
+        addObjectProperty(
+            obj,
+            "MaxIterations",
+            2000,
+            "App::PropertyInteger",
+            "IterationControl",
+            "Maximum number of iterations to run steady-state analysis",
+        )
+        addObjectProperty(
+            obj,
+            "SteadyWriteInterval",
+            100,
+            "App::PropertyInteger",
+            "IterationControl",
+            "Iteration output interval",
+        )
+        addObjectProperty(
+            obj,
+            "ConvergenceTol",
+            1e-3,
+            "App::PropertyFloat",
+            "IterationControl",
+            "Global absolute solution convergence criterion",
+        )
 
-        if addObjectProperty(obj, "StartFrom", START_FROM,
-                             "App::PropertyEnumeration", "TimeStepControl",
-                             "Whether to restart or resume solving"):
+        if addObjectProperty(
+            obj,
+            "StartFrom",
+            START_FROM,
+            "App::PropertyEnumeration",
+            "TimeStepControl",
+            "Whether to restart or resume solving",
+        ):
             obj.StartFrom = START_FROM[0]
-        addObjectProperty(obj, "EndTime", "1 s", "App::PropertyQuantity", "TimeStepControl",
-                          "Total time to run transient solution")
-        addObjectProperty(obj, "TimeStep", "0.001 s", "App::PropertyQuantity", "TimeStepControl",
-                          "Time step increment")
-        addObjectProperty(obj, "MaxCFLNumber", 5, "App::PropertyFloat", "TimeStepControl",
-                          "Maximum CFL number for transient simulations")
-        addObjectProperty(obj, "MaxInterfaceCFLNumber", 5, "App::PropertyFloat", "TimeStepControl",
-                          "Maximum free-surface CFL number for transient simulations")
-        addObjectProperty(obj, "TransientWriteInterval", "0.1 s", "App::PropertyQuantity", "TimeStepControl",
-                          "Output time interval")
+        addObjectProperty(
+            obj,
+            "EndTime",
+            "1 s",
+            "App::PropertyQuantity",
+            "TimeStepControl",
+            "Total time to run transient solution",
+        )
+        addObjectProperty(
+            obj,
+            "TimeStep",
+            "0.001 s",
+            "App::PropertyQuantity",
+            "TimeStepControl",
+            "Time step increment",
+        )
+        addObjectProperty(
+            obj,
+            "MaxCFLNumber",
+            5,
+            "App::PropertyFloat",
+            "TimeStepControl",
+            "Maximum CFL number for transient simulations",
+        )
+        addObjectProperty(
+            obj,
+            "MaxInterfaceCFLNumber",
+            5,
+            "App::PropertyFloat",
+            "TimeStepControl",
+            "Maximum free-surface CFL number for transient simulations",
+        )
+        addObjectProperty(
+            obj,
+            "TransientWriteInterval",
+            "0.1 s",
+            "App::PropertyQuantity",
+            "TimeStepControl",
+            "Output time interval",
+        )
 
-        self.residual_plotter = TimePlot(title="Simulation residuals", y_label="Residual", is_log=True)
+        self.residual_plotter = TimePlot(
+            title="Simulation residuals", y_label="Residual", is_log=True
+        )
         self.forces_plotters = {}
         self.force_coeffs_plotters = {}
         self.probes_plotters = {}
-
 
     def onDocumentRestored(self, obj):
         self.initProperties(obj)
@@ -145,7 +231,8 @@ class CfdSolverFoam(object):
 
 
 class _CfdSolverFoam:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def onDocumentRestored(self, obj):
         CfdSolverFoam(obj)
 
@@ -165,7 +252,8 @@ class _CfdSolverFoam:
 
 class ViewProviderCfdSolverFoam:
     """A View Provider for the Solver object, base class for all derived solver
-    derived solver should implement  a specific TaskPanel and set up solver and override setEdit()"""
+    derived solver should implement  a specific TaskPanel and set up solver and override setEdit()
+    """
 
     def __init__(self, vobj):
         vobj.Proxy = self
@@ -193,10 +281,14 @@ class ViewProviderCfdSolverFoam:
             from CfdOF.Solve import CfdRunnableFoam
             from CfdOF import CfdTimePlot
             import importlib
+
             importlib.reload(CfdTimePlot)
             importlib.reload(CfdRunnableFoam)
-            foam_runnable = CfdRunnableFoam.CfdRunnableFoam(CfdTools.getActiveAnalysis(), self.Object)
+            foam_runnable = CfdRunnableFoam.CfdRunnableFoam(
+                CfdTools.getActiveAnalysis(), self.Object
+            )
             from CfdOF.Solve import TaskPanelCfdSolverControl
+
             importlib.reload(TaskPanelCfdSolverControl)
             self.taskd = TaskPanelCfdSolverControl.TaskPanelCfdSolverControl(foam_runnable)
             self.taskd.obj = vobj.Object
@@ -204,7 +296,7 @@ class ViewProviderCfdSolverFoam:
         return True
 
     def doubleClicked(self, vobj):
-        if FreeCADGui.activeWorkbench().name() != 'CfdOFWorkbench':
+        if FreeCADGui.activeWorkbench().name() != "CfdOFWorkbench":
             FreeCADGui.activateWorkbench("CfdOFWorkbench")
         doc = FreeCADGui.getDocument(vobj.Object.Document)
         if not CfdTools.getActiveAnalysis():
@@ -213,17 +305,20 @@ class ViewProviderCfdSolverFoam:
                 CfdTools.setActiveAnalysis(analysis_obj)
             else:
                 FreeCAD.Console.PrintError(
-                    'No Active Analysis detected from Solver object in the active Document\n')
+                    "No Active Analysis detected from Solver object in the active Document\n"
+                )
         if not doc.getInEdit():
             if CfdTools.getActiveAnalysis().Document is FreeCAD.ActiveDocument:
                 if self.Object in CfdTools.getActiveAnalysis().Group:
                     doc.setEdit(vobj.Object.Name)
                 else:
-                    FreeCAD.Console.PrintError('Please activate the Analysis this solver belongs to.\n')
+                    FreeCAD.Console.PrintError(
+                        "Please activate the Analysis this solver belongs to.\n"
+                    )
             else:
-                FreeCAD.Console.PrintError('Active Analysis is not in active Document\n')
+                FreeCAD.Console.PrintError("Active Analysis is not in active Document\n")
         else:
-            FreeCAD.Console.PrintError('Task dialog already active\n')
+            FreeCAD.Console.PrintError("Task dialog already active\n")
             FreeCADGui.Control.showTaskView()
         return True
 
@@ -248,7 +343,8 @@ class ViewProviderCfdSolverFoam:
 
 
 class _ViewProviderCfdSolverFoam:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def attach(self, vobj):
         new_proxy = ViewProviderCfdSolverFoam(vobj)
         new_proxy.attach(vobj)

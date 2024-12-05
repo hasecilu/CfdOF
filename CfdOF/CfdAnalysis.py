@@ -26,14 +26,16 @@ import FreeCAD
 from CfdOF import CfdTools
 from CfdOF.CfdTools import addObjectProperty
 import os
+
 if FreeCAD.GuiUp:
     import FreeCADGui
     from PySide import QtCore
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
+
 def makeCfdAnalysis(name):
-    """ Create a Cfd Analysis group object """
+    """Create a Cfd Analysis group object"""
     obj = FreeCAD.ActiveDocument.addObject("App::DocumentObjectGroupPython", name)
     CfdAnalysis(obj)
 
@@ -43,7 +45,8 @@ def makeCfdAnalysis(name):
 
 
 class CfdAnalysis:
-    """ The CFD analysis group """
+    """The CFD analysis group"""
+
     def __init__(self, obj):
         self.loading = False
         self.ignore_next_grouptouched = False
@@ -52,16 +55,59 @@ class CfdAnalysis:
         self.initProperties(obj)
 
     def initProperties(self, obj):
-        addObjectProperty(obj, "OutputPath", "", "App::PropertyPath", "",
-                          "Path to which cases are written (blank to use system default; relative path is relative "
-                          "to location of current file)")
-        addObjectProperty(obj, "IsActiveAnalysis", False, "App::PropertyBool", "", "Active analysis object in document")
+        addObjectProperty(
+            obj,
+            "OutputPath",
+            "",
+            "App::PropertyPath",
+            "",
+            "Path to which cases are written (blank to use system default; relative path is relative "
+            "to location of current file)",
+        )
+        addObjectProperty(
+            obj,
+            "IsActiveAnalysis",
+            False,
+            "App::PropertyBool",
+            "",
+            "Active analysis object in document",
+        )
         obj.setEditorMode("IsActiveAnalysis", 1)  # Make read-only (2 = hidden)
-        addObjectProperty(obj, 'NeedsMeshRewrite', True, "App::PropertyBool", "", "Mesh setup needs to be re-written")
-        addObjectProperty(obj, 'NeedsCaseRewrite', True, "App::PropertyBool", "", "Case setup needs to be re-written")
-        addObjectProperty(obj, 'NeedsMeshRerun', True, "App::PropertyBool", "", "Mesher needs to be re-run before running solver")
-        addObjectProperty(obj, 'UseHostfile', False, "App::PropertyBool", "", "Use a hostfile for parallel cluster runs")
-        addObjectProperty(obj, 'HostfileName', "../mpi_hostfile", "App::PropertyString", "", "Hostfile name")
+        addObjectProperty(
+            obj,
+            "NeedsMeshRewrite",
+            True,
+            "App::PropertyBool",
+            "",
+            "Mesh setup needs to be re-written",
+        )
+        addObjectProperty(
+            obj,
+            "NeedsCaseRewrite",
+            True,
+            "App::PropertyBool",
+            "",
+            "Case setup needs to be re-written",
+        )
+        addObjectProperty(
+            obj,
+            "NeedsMeshRerun",
+            True,
+            "App::PropertyBool",
+            "",
+            "Mesher needs to be re-run before running solver",
+        )
+        addObjectProperty(
+            obj,
+            "UseHostfile",
+            False,
+            "App::PropertyBool",
+            "",
+            "Use a hostfile for parallel cluster runs",
+        )
+        addObjectProperty(
+            obj, "HostfileName", "../mpi_hostfile", "App::PropertyString", "", "Hostfile name"
+        )
 
     def onDocumentRestored(self, obj):
         self.loading = False
@@ -81,7 +127,8 @@ class CfdAnalysis:
 
 
 class _CfdAnalysis:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def onDocumentRestored(self, obj):
         CfdAnalysis(obj)
 
@@ -99,16 +146,21 @@ class _CfdAnalysis:
 
 
 class CommandCfdAnalysis:
-    """ The CfdOF_Analysis command definition """
+    """The CfdOF_Analysis command definition"""
+
     def __init__(self):
         pass
 
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "cfd_analysis.svg")
-        return {'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_Analysis", "Analysis container"),
-                'Accel': "N, C",
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_Analysis", "Creates an analysis container with a CFD solver")}
+        return {
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_Analysis", "Analysis container"),
+            "Accel": "N, C",
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_Analysis", "Creates an analysis container with a CFD solver"
+            ),
+        }
 
     def IsActive(self):
         return FreeCAD.ActiveDocument is not None
@@ -127,7 +179,9 @@ class CommandCfdAnalysis:
 
         # Add fluid properties object when CfdAnalysis container is created
         FreeCADGui.doCommand("from CfdOF.Solve import CfdFluidMaterial")
-        FreeCADGui.doCommand("analysis.addObject(CfdFluidMaterial.makeCfdFluidMaterial('FluidProperties'))")
+        FreeCADGui.doCommand(
+            "analysis.addObject(CfdFluidMaterial.makeCfdFluidMaterial('FluidProperties'))"
+        )
 
         # Add initialisation object when CfdAnalysis container is created
         FreeCADGui.doCommand("from CfdOF.Solve import CfdInitialiseFlowField")
@@ -139,7 +193,8 @@ class CommandCfdAnalysis:
 
 
 class ViewProviderCfdAnalysis:
-    """ A View Provider for the CfdAnalysis container object. """
+    """A View Provider for the CfdAnalysis container object."""
+
     def __init__(self, vobj):
         vobj.Proxy = self
 
@@ -153,34 +208,34 @@ class ViewProviderCfdAnalysis:
 
     def updateData(self, obj, prop):
         if not obj.Proxy.loading:
-            if prop == 'OutputPath':
+            if prop == "OutputPath":
                 obj.NeedsMeshRewrite = True
                 obj.NeedsCaseRewrite = True
-            elif prop == 'Group':
+            elif prop == "Group":
                 # Something was added or deleted
                 obj.NeedsCaseRewrite = True
 
     def onChanged(self, vobj, prop):
         self.makePartTransparent(vobj)
-        #CfdTools.setCompSolid(vobj)
+        # CfdTools.setCompSolid(vobj)
         return
 
     def doubleClicked(self, vobj):
         if not CfdTools.getActiveAnalysis() == self.Object:
-            if FreeCADGui.activeWorkbench().name() != 'CfdOFWorkbench':
+            if FreeCADGui.activeWorkbench().name() != "CfdOFWorkbench":
                 FreeCADGui.activateWorkbench("CfdOFWorkbench")
             CfdTools.setActiveAnalysis(self.Object)
             return True
         return True
 
     def makePartTransparent(self, vobj):
-        """ Make parts transparent so that the boundary conditions and cell zones are clearly visible. """
+        """Make parts transparent so that the boundary conditions and cell zones are clearly visible."""
         docName = str(vobj.Object.Document.Name)
         doc = FreeCAD.getDocument(docName)
         for obj in doc.Objects:
             if obj.isDerivedFrom("Part::Feature") and not ("CfdFluidBoundary" in obj.Name):
                 vobj2 = FreeCAD.getDocument(docName).getObject(obj.Name).ViewObject
-                if hasattr(vobj2, 'Transparency'):
+                if hasattr(vobj2, "Transparency"):
                     vobj2.Transparency = 70
                 if obj.isDerivedFrom("PartDesign::Feature"):
                     doc.getObject(obj.Name).ViewObject.LineWidth = 1
@@ -202,7 +257,8 @@ class ViewProviderCfdAnalysis:
 
 
 class _ViewProviderCfdAnalysis:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def attach(self, vobj):
         new_proxy = ViewProviderCfdAnalysis(vobj)
         new_proxy.attach(vobj)

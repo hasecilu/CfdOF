@@ -27,20 +27,23 @@ from PySide import QtCore
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
+
 class CommandCfdReloadWorkbench:
 
     def __init__(self):
         pass
 
     def GetResources(self):
-        return {'MenuText': QT_TRANSLATE_NOOP("CfdOF_ReloadWorkbench",
-                                              "Reload CfdOF workbench"),
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_ReloadWorkbench",
-                "Attempt to reload all CfdOF source files from disk. May break open documents!")}
+        return {
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_ReloadWorkbench", "Reload CfdOF workbench"),
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_ReloadWorkbench",
+                "Attempt to reload all CfdOF source files from disk. May break open documents!",
+            ),
+        }
 
     def IsActive(self):
         return True
 
     def Activated(self):
         CfdTools.reloadWorkbench()
-

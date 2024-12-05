@@ -60,55 +60,94 @@ class CfdOFWorkbench(Workbench):
         from CfdOF.Solve.CfdFluidBoundary import CommandCfdFluidBoundary
         from CfdOF.Solve.CfdZone import CommandCfdPorousZone
         from CfdOF.Solve.CfdZone import CommandCfdInitialisationZone
-        from CfdOF.Mesh.CfdDynamicMeshRefinement import CommandGroupDynamicMeshRefinement, \
-            CommandDynamicMeshInterfaceRefinement, CommandDynamicMeshShockRefinement
+        from CfdOF.Mesh.CfdDynamicMeshRefinement import (
+            CommandGroupDynamicMeshRefinement,
+            CommandDynamicMeshInterfaceRefinement,
+            CommandDynamicMeshShockRefinement,
+        )
         from CfdOF.PostProcess.CfdReportingFunction import CommandCfdReportingFunction
         from CfdOF.Solve.CfdScalarTransportFunction import CommandCfdScalarTransportFunction
         from CfdOF.CfdOpenPreferencesPage import CommandCfdOpenPreferencesPage
         from CfdOF.CfdReloadWorkbench import CommandCfdReloadWorkbench
-        from CfdOF.CfdTestCommands import CommandCfdRunTests, CommandCfdUpdateTestData, CommandCfdCleanTests
+        from CfdOF.CfdTestCommands import (
+            CommandCfdRunTests,
+            CommandCfdUpdateTestData,
+            CommandCfdCleanTests,
+        )
 
-        FreeCADGui.addCommand('CfdOF_Analysis', CommandCfdAnalysis())
-        FreeCADGui.addCommand('CfdOF_MeshFromShape', CommandCfdMeshFromShape())
-        FreeCADGui.addCommand('CfdOF_MeshRegion', CommandMeshRegion())
-        FreeCADGui.addCommand('CfdOF_DynamicMeshInterfaceRefinement', CommandDynamicMeshInterfaceRefinement())
-        FreeCADGui.addCommand('CfdOF_DynamicMeshShockRefinement', CommandDynamicMeshShockRefinement())
-        FreeCADGui.addCommand('CfdOF_GroupDynamicMeshRefinement', CommandGroupDynamicMeshRefinement())
-        FreeCADGui.addCommand('CfdOF_PhysicsModel', CommandCfdPhysicsSelection())
-        FreeCADGui.addCommand('CfdOF_FluidMaterial', CommandCfdFluidMaterial())
-        FreeCADGui.addCommand('CfdOF_FluidBoundary', CommandCfdFluidBoundary())
-        FreeCADGui.addCommand('CfdOF_InitialiseInternal', CommandCfdInitialiseInternalFlowField())
-        FreeCADGui.addCommand('CfdOF_PorousZone', CommandCfdPorousZone())
-        FreeCADGui.addCommand('CfdOF_InitialisationZone', CommandCfdInitialisationZone())
-        FreeCADGui.addCommand('CfdOF_SolverControl', CommandCfdSolverFoam())
-        FreeCADGui.addCommand('CfdOF_ReportingFunctions', CommandCfdReportingFunction())
-        FreeCADGui.addCommand('CfdOF_ScalarTransportFunctions', CommandCfdScalarTransportFunction())
-        FreeCADGui.addCommand('CfdOF_OpenPreferences', CommandCfdOpenPreferencesPage())
-        FreeCADGui.addCommand('CfdOF_ReloadWorkbench', CommandCfdReloadWorkbench())
-        FreeCADGui.addCommand('CfdOF_RunTests', CommandCfdRunTests())
-        FreeCADGui.addCommand('CfdOF_UpdateTestData', CommandCfdUpdateTestData())
-        FreeCADGui.addCommand('CfdOF_CleanTests', CommandCfdCleanTests())
+        FreeCADGui.addCommand("CfdOF_Analysis", CommandCfdAnalysis())
+        FreeCADGui.addCommand("CfdOF_MeshFromShape", CommandCfdMeshFromShape())
+        FreeCADGui.addCommand("CfdOF_MeshRegion", CommandMeshRegion())
+        FreeCADGui.addCommand(
+            "CfdOF_DynamicMeshInterfaceRefinement", CommandDynamicMeshInterfaceRefinement()
+        )
+        FreeCADGui.addCommand(
+            "CfdOF_DynamicMeshShockRefinement", CommandDynamicMeshShockRefinement()
+        )
+        FreeCADGui.addCommand(
+            "CfdOF_GroupDynamicMeshRefinement", CommandGroupDynamicMeshRefinement()
+        )
+        FreeCADGui.addCommand("CfdOF_PhysicsModel", CommandCfdPhysicsSelection())
+        FreeCADGui.addCommand("CfdOF_FluidMaterial", CommandCfdFluidMaterial())
+        FreeCADGui.addCommand("CfdOF_FluidBoundary", CommandCfdFluidBoundary())
+        FreeCADGui.addCommand("CfdOF_InitialiseInternal", CommandCfdInitialiseInternalFlowField())
+        FreeCADGui.addCommand("CfdOF_PorousZone", CommandCfdPorousZone())
+        FreeCADGui.addCommand("CfdOF_InitialisationZone", CommandCfdInitialisationZone())
+        FreeCADGui.addCommand("CfdOF_SolverControl", CommandCfdSolverFoam())
+        FreeCADGui.addCommand("CfdOF_ReportingFunctions", CommandCfdReportingFunction())
+        FreeCADGui.addCommand("CfdOF_ScalarTransportFunctions", CommandCfdScalarTransportFunction())
+        FreeCADGui.addCommand("CfdOF_OpenPreferences", CommandCfdOpenPreferencesPage())
+        FreeCADGui.addCommand("CfdOF_ReloadWorkbench", CommandCfdReloadWorkbench())
+        FreeCADGui.addCommand("CfdOF_RunTests", CommandCfdRunTests())
+        FreeCADGui.addCommand("CfdOF_UpdateTestData", CommandCfdUpdateTestData())
+        FreeCADGui.addCommand("CfdOF_CleanTests", CommandCfdCleanTests())
 
         # Commands for both menu and toolbar, or one or the other if a tuple
         # starting with 'M' or 'T'
-        cmdlst = ['CfdOF_Analysis',
-                  'CfdOF_MeshFromShape', 'CfdOF_MeshRegion',
-                  ('M', QT_TRANSLATE_NOOP("Workbench", "Dynamic mesh refinement"),
-                   ['CfdOF_DynamicMeshInterfaceRefinement','CfdOF_DynamicMeshShockRefinement',]),
-                  ('T', 'CfdOF_GroupDynamicMeshRefinement',),
-                  'CfdOF_PhysicsModel', 'CfdOF_FluidMaterial',
-                  'CfdOF_FluidBoundary', 'CfdOF_InitialiseInternal',
-                  'CfdOF_InitialisationZone', 'CfdOF_PorousZone',
-                  'CfdOF_ReportingFunctions', 'CfdOF_ScalarTransportFunctions',
-                  'CfdOF_SolverControl',
-                  ('M', 'CfdOF_OpenPreferences',),
-                  ('M', QT_TRANSLATE_NOOP("Workbench", "Development"),
-                   ['CfdOF_ReloadWorkbench', 'CfdOF_RunTests', 'CfdOF_UpdateTestData', 'CfdOF_CleanTests']),
-                  ]
+        cmdlst = [
+            "CfdOF_Analysis",
+            "CfdOF_MeshFromShape",
+            "CfdOF_MeshRegion",
+            (
+                "M",
+                QT_TRANSLATE_NOOP("Workbench", "Dynamic mesh refinement"),
+                [
+                    "CfdOF_DynamicMeshInterfaceRefinement",
+                    "CfdOF_DynamicMeshShockRefinement",
+                ],
+            ),
+            (
+                "T",
+                "CfdOF_GroupDynamicMeshRefinement",
+            ),
+            "CfdOF_PhysicsModel",
+            "CfdOF_FluidMaterial",
+            "CfdOF_FluidBoundary",
+            "CfdOF_InitialiseInternal",
+            "CfdOF_InitialisationZone",
+            "CfdOF_PorousZone",
+            "CfdOF_ReportingFunctions",
+            "CfdOF_ScalarTransportFunctions",
+            "CfdOF_SolverControl",
+            (
+                "M",
+                "CfdOF_OpenPreferences",
+            ),
+            (
+                "M",
+                QT_TRANSLATE_NOOP("Workbench", "Development"),
+                [
+                    "CfdOF_ReloadWorkbench",
+                    "CfdOF_RunTests",
+                    "CfdOF_UpdateTestData",
+                    "CfdOF_CleanTests",
+                ],
+            ),
+        ]
 
         for cmd in cmdlst:
             if isinstance(cmd, tuple):
-                if cmd[0] == 'T':
+                if cmd[0] == "T":
                     self.appendToolbar(QT_TRANSLATE_NOOP("Workbench", "CfdOF"), [cmd[1]])
                 else:
                     if len(cmd) == 2:
@@ -120,45 +159,63 @@ class CfdOFWorkbench(Workbench):
                 self.appendToolbar(QT_TRANSLATE_NOOP("Workbench", "CfdOF"), [cmd])
 
         from CfdOF import CfdTools
+
         prefs = CfdTools.getPreferencesLocation()
-        CfdTools.DockerContainer.usedocker = FreeCAD.ParamGet(prefs).GetBool("UseDocker", 0)    
+        CfdTools.DockerContainer.usedocker = FreeCAD.ParamGet(prefs).GetBool("UseDocker", 0)
 
     def GetClassName(self):
         return "Gui::PythonWorkbench"
 
     def __del__(sef):
         from CfdOF import CfdTools
+
         if CfdTools.DockerContainer.container_id != None:
             CfdTools.docker_container.stop_container()
 
+
 import CfdOF
+
 FreeCADGui.addWorkbench(CfdOFWorkbench())
 FreeCAD.__unit_test__ += ["TestCfdOF"]
 
 # Create backward compatible aliases for loading from file when modules have moved
 from CfdOF import CfdAnalysis
-sys.modules['CfdAnalysis'] = CfdAnalysis
+
+sys.modules["CfdAnalysis"] = CfdAnalysis
 from CfdOF.Solve import CfdPhysicsSelection
-sys.modules['CfdPhysicsSelection'] = CfdPhysicsSelection
+
+sys.modules["CfdPhysicsSelection"] = CfdPhysicsSelection
 from CfdOF.Solve import CfdFluidMaterial
-sys.modules['CfdFluidMaterial'] = CfdFluidMaterial
+
+sys.modules["CfdFluidMaterial"] = CfdFluidMaterial
 from CfdOF.Solve import CfdInitialiseFlowField
-sys.modules['CfdInitialiseFlowField'] = CfdInitialiseFlowField
+
+sys.modules["CfdInitialiseFlowField"] = CfdInitialiseFlowField
 from CfdOF.Mesh import CfdMesh
-sys.modules['CfdMesh'] = CfdMesh
+
+sys.modules["CfdMesh"] = CfdMesh
 from CfdOF.Mesh import CfdMeshRefinement
-sys.modules['CfdMeshRefinement'] = CfdMeshRefinement
+
+sys.modules["CfdMeshRefinement"] = CfdMeshRefinement
 from CfdOF.Solve import CfdFluidBoundary
-sys.modules['CfdFluidBoundary'] = CfdFluidBoundary
+
+sys.modules["CfdFluidBoundary"] = CfdFluidBoundary
 from CfdOF.Solve import CfdZone
-sys.modules['CfdZone'] = CfdZone
+
+sys.modules["CfdZone"] = CfdZone
 from CfdOF.Solve import CfdSolverFoam
-sys.modules['CfdSolverFoam'] = CfdSolverFoam
+
+sys.modules["CfdSolverFoam"] = CfdSolverFoam
 from CfdOF.PostProcess import CfdReportingFunction
-sys.modules['core.functionobjects.reporting.CfdReportingFunctions'] = CfdReportingFunction
-sys.modules['CfdOF.PostProcess.CfdReportingFunctions'] = CfdReportingFunction
+
+sys.modules["core.functionobjects.reporting.CfdReportingFunctions"] = CfdReportingFunction
+sys.modules["CfdOF.PostProcess.CfdReportingFunctions"] = CfdReportingFunction
 from CfdOF.Solve import CfdScalarTransportFunction
-sys.modules['core.functionobjects.scalartransport.CfdScalarTransportFunction'] = CfdScalarTransportFunction
+
+sys.modules["core.functionobjects.scalartransport.CfdScalarTransportFunction"] = (
+    CfdScalarTransportFunction
+)
 from CfdOF.Mesh import CfdDynamicMeshRefinement
-sys.modules['core.mesh.dynamic.CfdDynamicMeshRefinement'] = CfdDynamicMeshRefinement
-sys.modules['core'] = CfdOF
+
+sys.modules["core.mesh.dynamic.CfdDynamicMeshRefinement"] = CfdDynamicMeshRefinement
+sys.modules["core"] = CfdOF

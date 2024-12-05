@@ -25,6 +25,7 @@
 import os
 import os.path
 import FreeCAD
+
 if FreeCAD.GuiUp:
     import FreeCADGui
     from PySide import QtGui, QtCore
@@ -36,16 +37,22 @@ from CfdOF.Solve import CfdFluidBoundary
 
 translate = FreeCAD.Qt.translate
 
+
 class TaskPanelCfdFluidBoundary:
-    """ Task panel for adding fluid boundary """
+    """Task panel for adding fluid boundary"""
+
     def __init__(self, obj, physics_model, material_objs):
         self.selecting_direction = False
         self.obj = obj
 
         self.physics_model = physics_model
-        self.turb_model = (physics_model.TurbulenceModel
-                          if physics_model.Turbulence == 'RANS' or physics_model.Turbulence == 'DES'
-                             or physics_model.Turbulence == 'LES' else None)
+        self.turb_model = (
+            physics_model.TurbulenceModel
+            if physics_model.Turbulence == "RANS"
+            or physics_model.Turbulence == "DES"
+            or physics_model.Turbulence == "LES"
+            else None
+        )
 
         self.material_objs = material_objs
         self.analysis_obj = CfdTools.getParentAnalysisObject(obj)
@@ -59,7 +66,7 @@ class TaskPanelCfdFluidBoundary:
 
         self.alphas = {}
 
-        ui_path = os.path.join(CfdTools.getModulePath(), 'Gui', "TaskPanelCfdFluidBoundary.ui")
+        ui_path = os.path.join(CfdTools.getModulePath(), "Gui", "TaskPanelCfdFluidBoundary.ui")
         self.form = FreeCADGui.PySideUic.loadUi(ui_path)
 
         self.form.buttonDirection.setCheckable(True)
@@ -109,8 +116,10 @@ class TaskPanelCfdFluidBoundary:
 
         # Thermal
         self.form.comboThermalBoundaryType.addItems(CfdFluidBoundary.THERMAL_BOUNDARY_NAMES)
-        thi = indexOrDefault(CfdFluidBoundary.THERMAL_BOUNDARY_TYPES, self.obj.ThermalBoundaryType, 0)
-        self.form.comboThermalBoundaryType.setCurrentIndex(thi)
+        this = indexOrDefault(
+            CfdFluidBoundary.THERMAL_BOUNDARY_TYPES, self.obj.ThermalBoundaryType, 0
+        )
+        self.form.comboThermalBoundaryType.setCurrentIndex(this)
         setQuantity(self.form.inputTemperature, self.obj.Temperature)
         setQuantity(self.form.inputHeatFlux, self.obj.HeatFlux)
         setQuantity(self.form.inputHeatTransferCoeff, self.obj.HeatTransferCoeff)
@@ -124,11 +133,13 @@ class TaskPanelCfdFluidBoundary:
         boundary_patches = CfdTools.getCfdBoundaryGroup(self.analysis_obj)
         periodic_patches = []
         for patch in boundary_patches:
-            if patch.BoundarySubType == 'cyclicAMI' and patch.Label != self.obj.Label:
+            if patch.BoundarySubType == "cyclicAMI" and patch.Label != self.obj.Label:
                 periodic_patches.append(patch.Label)
 
         self.form.comboBoxPeriodicPartner.addItems(periodic_patches)
-        pi = self.form.comboBoxPeriodicPartner.findText(self.obj.PeriodicPartner, QtCore.Qt.MatchFixedString)
+        pi = self.form.comboBoxPeriodicPartner.findText(
+            self.obj.PeriodicPartner, QtCore.Qt.MatchFixedString
+        )
         if pi < 0 and len(periodic_patches):
             pi = 0
         self.form.comboBoxPeriodicPartner.setCurrentIndex(pi)
@@ -149,8 +160,14 @@ class TaskPanelCfdFluidBoundary:
 
         # Turbulence
         if self.turb_model is not None:
-            self.form.comboTurbulenceSpecification.addItems(CfdFluidBoundary.TURBULENT_INLET_SPEC[self.turb_model][0])
-            ti = indexOrDefault(CfdFluidBoundary.TURBULENT_INLET_SPEC[self.turb_model][1], self.obj.TurbulenceInletSpecification, 0)
+            self.form.comboTurbulenceSpecification.addItems(
+                CfdFluidBoundary.TURBULENT_INLET_SPEC[self.turb_model][0]
+            )
+            ti = indexOrDefault(
+                CfdFluidBoundary.TURBULENT_INLET_SPEC[self.turb_model][1],
+                self.obj.TurbulenceInletSpecification,
+                0,
+            )
             self.form.comboTurbulenceSpecification.setCurrentIndex(ti)
 
         # Add volume fraction fields
@@ -168,15 +185,17 @@ class TaskPanelCfdFluidBoundary:
         # Set the inputs for the turbulence models
         # RANS
         setQuantity(self.form.inputKineticEnergy, self.obj.TurbulentKineticEnergy)  # k
-        setQuantity(self.form.inputSpecificDissipationRate, self.obj.SpecificDissipationRate)   # omega
-        setQuantity(self.form.inputDissipationRate, self.obj.DissipationRate)    # epsilon
-        setQuantity(self.form.inputIntensity, self.obj.TurbulenceIntensityPercentage)      # intensity
+        setQuantity(
+            self.form.inputSpecificDissipationRate, self.obj.SpecificDissipationRate
+        )  # omega
+        setQuantity(self.form.inputDissipationRate, self.obj.DissipationRate)  # epsilon
+        setQuantity(self.form.inputIntensity, self.obj.TurbulenceIntensityPercentage)  # intensity
         setQuantity(self.form.inputLengthScale, self.obj.TurbulenceLengthScale)  # length scale
-        setQuantity(self.form.inputGammaInt, self.obj.Intermittency)   # gammaInt
+        setQuantity(self.form.inputGammaInt, self.obj.Intermittency)  # gammaInt
         setQuantity(self.form.inputReThetat, self.obj.ReThetat)  # ReThetat
-        setQuantity(self.form.inputNuTilda, self.obj.NuTilda) # Modified nu tilde
+        setQuantity(self.form.inputNuTilda, self.obj.NuTilda)  # Modified nu tilde
         # LES models
-        setQuantity(self.form.inputTurbulentViscosity, self.obj.TurbulentViscosity) # nu tilde
+        setQuantity(self.form.inputTurbulentViscosity, self.obj.TurbulentViscosity)  # nu tilde
         setQuantity(self.form.inputKineticEnergy, self.obj.TurbulentKineticEnergy)  # nu tilde
 
         # RANS models
@@ -210,8 +229,9 @@ class TaskPanelCfdFluidBoundary:
         self.form.rb_translational_periodic.toggled.connect(self.updateUI)
 
         # Face list selection panel - modifies obj.ShapeRefs passed to it
-        self.faceSelector = CfdFaceSelectWidget.CfdFaceSelectWidget(self.form.faceSelectWidget,
-                                                                    self.obj, True, True, False)
+        self.faceSelector = CfdFaceSelectWidget.CfdFaceSelectWidget(
+            self.form.faceSelectWidget, self.obj, True, True, False
+        )
 
         self.updateUI()
 
@@ -246,7 +266,10 @@ class TaskPanelCfdFluidBoundary:
         alpha_enabled = CfdFluidBoundary.BOUNDARY_UI[type_index][subtype_index][4]
         self.form.volumeFractionsFrame.setVisible(alpha_enabled and len(self.material_objs) > 1)
 
-        if not self.physics_model.Flow == 'Isothermal' and CfdFluidBoundary.BOUNDARY_UI[type_index][subtype_index][5]:
+        if (
+            not self.physics_model.Flow == "Isothermal"
+            and CfdFluidBoundary.BOUNDARY_UI[type_index][subtype_index][5]
+        ):
             self.form.thermalFrame.setVisible(True)
             selected_rows = CfdFluidBoundary.BOUNDARY_UI[type_index][subtype_index][6]
             CfdTools.enableLayoutRows(self.form.layoutThermal, selected_rows)
@@ -263,7 +286,8 @@ class TaskPanelCfdFluidBoundary:
         if self.turb_model:
             index = self.form.comboTurbulenceSpecification.currentIndex()
             self.form.labelTurbulenceDescription.setText(
-                CfdFluidBoundary.TURBULENT_INLET_SPEC[self.turb_model][2][index])
+                CfdFluidBoundary.TURBULENT_INLET_SPEC[self.turb_model][2][index]
+            )
             panel_numbers = CfdFluidBoundary.TURBULENT_INLET_SPEC[self.turb_model][3][index]
             # Enables specified rows of a QFormLayout
             CfdTools.enableLayoutRows(self.form.layoutTurbulenceValues, panel_numbers)
@@ -275,7 +299,9 @@ class TaskPanelCfdFluidBoundary:
             self.form.labelThermalDescription.setText(CfdFluidBoundary.THERMAL_HELPTEXT[index])
             panel_numbers = CfdFluidBoundary.BOUNDARY_THERMALTAB[index]
             # Input values only start at row 2 of this form
-            CfdTools.enableLayoutRows(self.form.layoutThermal, [0, 1] + [rowi+2 for rowi in panel_numbers])
+            CfdTools.enableLayoutRows(
+                self.form.layoutThermal, [0, 1] + [rowi + 2 for rowi in panel_numbers]
+            )
 
         periodic_enabled = CfdFluidBoundary.BOUNDARY_UI[type_index][subtype_index][7]
         if periodic_enabled:
@@ -295,7 +321,9 @@ class TaskPanelCfdFluidBoundary:
         self.form.comboSubtype.clear()
         self.form.comboSubtype.addItems(CfdFluidBoundary.SUBNAMES[index])
         self.form.comboSubtype.setCurrentIndex(0)
-        self.obj.BoundaryType = CfdFluidBoundary.BOUNDARY_TYPES[self.form.comboBoundaryType.currentIndex()]
+        self.obj.BoundaryType = CfdFluidBoundary.BOUNDARY_TYPES[
+            self.form.comboBoundaryType.currentIndex()
+        ]
 
         # Change the color of the boundary condition as the selection is made
         doc_name = str(self.obj.Document.Name)
@@ -304,8 +332,12 @@ class TaskPanelCfdFluidBoundary:
     def comboSubtypeChanged(self):
         type_index = self.form.comboBoundaryType.currentIndex()
         subtype_index = self.form.comboSubtype.currentIndex()
-        self.form.labelBoundaryDescription.setText(CfdFluidBoundary.SUBTYPES_HELPTEXT[type_index][subtype_index])
-        self.obj.BoundarySubType = CfdFluidBoundary.SUBTYPES[type_index][self.form.comboSubtype.currentIndex()]
+        self.form.labelBoundaryDescription.setText(
+            CfdFluidBoundary.SUBTYPES_HELPTEXT[type_index][subtype_index]
+        )
+        self.obj.BoundarySubType = CfdFluidBoundary.SUBTYPES[type_index][
+            self.form.comboSubtype.currentIndex()
+        ]
         self.updateUI()
 
     def buttonDirectionClicked(self):
@@ -324,9 +356,7 @@ class TaskPanelCfdFluidBoundary:
 
         # start SelectionObserver and parse the function to add the References to the widget
         if self.selecting_direction:
-            FreeCAD.Console.PrintMessage(
-                translate("Console", "Select face to define direction\n")
-            )
+            FreeCAD.Console.PrintMessage(translate("Console", "Select face to define direction\n"))
             FreeCADGui.Selection.addObserver(self)
         else:
             FreeCADGui.Selection.removeObserver(self)
@@ -343,47 +373,53 @@ class TaskPanelCfdFluidBoundary:
 
         selected_object = FreeCAD.getDocument(doc_name).getObject(obj_name)
         # On double click on a vertex of a solid sub is None and obj is the solid
-        print('Selection: ' +
-              selected_object.Shape.ShapeType + '  ' +
-              selected_object.Name + ':' +
-              sub + " @ " + str(selected_point))
+        print(
+            "Selection: "
+            + selected_object.Shape.ShapeType
+            + "  "
+            + selected_object.Name
+            + ":"
+            + sub
+            + " @ "
+            + str(selected_point)
+        )
 
         if hasattr(selected_object, "Shape") and sub:
             elt = selected_object.Shape.getElement(sub)
-            if elt.ShapeType == 'Face':
+            if elt.ShapeType == "Face":
                 selection = (selected_object.Name, sub)
                 if self.selecting_direction:
                     if CfdTools.isPlanar(elt):
                         self.selecting_direction = False
-                        self.form.lineDirection.setText(selection[0] + ':' + selection[1])  # TODO: Display label, not name
+                        self.form.lineDirection.setText(
+                            selection[0] + ":" + selection[1]
+                        )  # TODO: Display label, not name
                     else:
-                        FreeCAD.Console.PrintMessage(
-                            translate("Console", "Face must be planar\n")
-                        )
+                        FreeCAD.Console.PrintMessage(translate("Console", "Face must be planar\n"))
 
         self.form.buttonDirection.setChecked(self.selecting_direction)
 
     def lineDirectionChanged(self, value):
-        selection = value.split(':')
+        selection = value.split(":")
         # See if entered face actually exists and is planar
         try:
             selected_object = self.obj.Document.getObject(selection[0])
             if hasattr(selected_object, "Shape"):
                 elt = selected_object.Shape.getElement(selection[1])
-                if elt.ShapeType == 'Face' and CfdTools.isPlanar(elt):
+                if elt.ShapeType == "Face" and CfdTools.isPlanar(elt):
                     return
         except SystemError:
             pass
 
-        FreeCAD.Console.PrintMessage(
-            value + translate("Console", " is not a valid, planar face\n")
-        )
+        FreeCAD.Console.PrintMessage(value + translate("Console", " is not a valid, planar face\n"))
 
     def getMaterialName(self, index):
         return self.material_objs[index].Label
 
     def comboFluidChanged(self, index):
-        setQuantity(self.form.inputVolumeFraction, str(self.alphas.get(self.getMaterialName(index), 0.0)))
+        setQuantity(
+            self.form.inputVolumeFraction, str(self.alphas.get(self.getMaterialName(index), 0.0))
+        )
 
     def inputVolumeFractionChanged(self, value):
         self.alphas[self.form.comboFluid.currentText()] = getQuantity(self.form.inputVolumeFraction)
@@ -393,113 +429,151 @@ class TaskPanelCfdFluidBoundary:
         self.analysis_obj.NeedsCaseRewrite = self.NeedsCaseRewriteOrig
 
         if self.obj.Label.startswith("CfdFluidBoundary"):
-            storeIfChanged(self.obj, 'Label', self.obj.BoundaryType)
+            storeIfChanged(self.obj, "Label", self.obj.BoundaryType)
 
         # Type
         if self.obj.BoundaryType != self.BoundaryTypeOrig:
             FreeCADGui.doCommand(
-                "FreeCAD.ActiveDocument.{}.BoundaryType = '{}'".format(self.obj.Name, self.obj.BoundaryType))
+                "FreeCAD.ActiveDocument.{}.BoundaryType = '{}'".format(
+                    self.obj.Name, self.obj.BoundaryType
+                )
+            )
         if self.obj.BoundarySubType != self.BoundarySubTypeOrig:
             FreeCADGui.doCommand(
-                "FreeCAD.ActiveDocument.{}.BoundarySubType = '{}'".format(self.obj.Name, self.obj.BoundarySubType))
-        storeIfChanged(self.obj, 'ThermalBoundaryType',
-                       CfdFluidBoundary.THERMAL_BOUNDARY_TYPES[self.form.comboThermalBoundaryType.currentIndex()])
+                "FreeCAD.ActiveDocument.{}.BoundarySubType = '{}'".format(
+                    self.obj.Name, self.obj.BoundarySubType
+                )
+            )
+        storeIfChanged(
+            self.obj,
+            "ThermalBoundaryType",
+            CfdFluidBoundary.THERMAL_BOUNDARY_TYPES[
+                self.form.comboThermalBoundaryType.currentIndex()
+            ],
+        )
 
         # Velocity
-        storeIfChanged(self.obj, 'VelocityIsCartesian', self.form.radioButtonCart.isChecked())
-        storeIfChanged(self.obj, 'Ux', getQuantity(self.form.inputCartX))
-        storeIfChanged(self.obj, 'Uy', getQuantity(self.form.inputCartY))
-        storeIfChanged(self.obj, 'Uz', getQuantity(self.form.inputCartZ))
-        storeIfChanged(self.obj, 'VelocityMag', getQuantity(self.form.inputVelocityMag))
-        storeIfChanged(self.obj, 'DirectionFace', self.form.lineDirection.text())
-        storeIfChanged(self.obj, 'ReverseNormal', self.form.checkReverse.isChecked())
-        storeIfChanged(self.obj, 'MassFlowRate', getQuantity(self.form.inputMassFlowRate))
-        storeIfChanged(self.obj, 'VolFlowRate', getQuantity(self.form.inputVolFlowRate))
+        storeIfChanged(self.obj, "VelocityIsCartesian", self.form.radioButtonCart.isChecked())
+        storeIfChanged(self.obj, "Ux", getQuantity(self.form.inputCartX))
+        storeIfChanged(self.obj, "Uy", getQuantity(self.form.inputCartY))
+        storeIfChanged(self.obj, "Uz", getQuantity(self.form.inputCartZ))
+        storeIfChanged(self.obj, "VelocityMag", getQuantity(self.form.inputVelocityMag))
+        storeIfChanged(self.obj, "DirectionFace", self.form.lineDirection.text())
+        storeIfChanged(self.obj, "ReverseNormal", self.form.checkReverse.isChecked())
+        storeIfChanged(self.obj, "MassFlowRate", getQuantity(self.form.inputMassFlowRate))
+        storeIfChanged(self.obj, "VolFlowRate", getQuantity(self.form.inputVolFlowRate))
 
-        storeIfChanged(self.obj, 'RelativeToFrame', self.form.cb_relative_srf.isChecked())
+        storeIfChanged(self.obj, "RelativeToFrame", self.form.cb_relative_srf.isChecked())
 
         # Pressure
-        storeIfChanged(self.obj, 'Pressure', getQuantity(self.form.inputPressure))
+        storeIfChanged(self.obj, "Pressure", getQuantity(self.form.inputPressure))
 
         # Wall
-        storeIfChanged(self.obj, 'SlipRatio', getQuantity(self.form.inputSlipRatio))
-        storeIfChanged(self.obj, 'RoughnessHeight', getQuantity(self.form.inputRoughnessHeight))
-        storeIfChanged(self.obj, 'RoughnessConstant', getQuantity(self.form.inputRoughnessConstant))
+        storeIfChanged(self.obj, "SlipRatio", getQuantity(self.form.inputSlipRatio))
+        storeIfChanged(self.obj, "RoughnessHeight", getQuantity(self.form.inputRoughnessHeight))
+        storeIfChanged(self.obj, "RoughnessConstant", getQuantity(self.form.inputRoughnessConstant))
 
         # Thermal
-        storeIfChanged(self.obj, 'Temperature', getQuantity(self.form.inputTemperature))
-        storeIfChanged(self.obj, 'HeatFlux', getQuantity(self.form.inputHeatFlux))
-        storeIfChanged(self.obj, 'HeatTransferCoeff', getQuantity(self.form.inputHeatTransferCoeff))
+        storeIfChanged(self.obj, "Temperature", getQuantity(self.form.inputTemperature))
+        storeIfChanged(self.obj, "HeatFlux", getQuantity(self.form.inputHeatFlux))
+        storeIfChanged(self.obj, "HeatTransferCoeff", getQuantity(self.form.inputHeatTransferCoeff))
 
         # Periodic
-        storeIfChanged(self.obj, 'RotationalPeriodic', self.form.rb_rotational_periodic.isChecked())
+        storeIfChanged(self.obj, "RotationalPeriodic", self.form.rb_rotational_periodic.isChecked())
         centre_of_rotation = FreeCAD.Vector(
             self.form.input_corx.property("quantity").Value,
             self.form.input_cory.property("quantity").Value,
-            self.form.input_corz.property("quantity").Value)
-        storeIfChanged(self.obj, 'PeriodicCentreOfRotation', centre_of_rotation)
+            self.form.input_corz.property("quantity").Value,
+        )
+        storeIfChanged(self.obj, "PeriodicCentreOfRotation", centre_of_rotation)
 
         rotation_axis = FreeCAD.Vector(
             self.form.input_axisx.property("quantity").Value,
             self.form.input_axisy.property("quantity").Value,
-            self.form.input_axisz.property("quantity").Value)
-        storeIfChanged(self.obj, 'PeriodicCentreOfRotationAxis', rotation_axis)
+            self.form.input_axisz.property("quantity").Value,
+        )
+        storeIfChanged(self.obj, "PeriodicCentreOfRotationAxis", rotation_axis)
 
         separation_vector = FreeCAD.Vector(
             self.form.input_sepx.property("quantity").Value,
             self.form.input_sepy.property("quantity").Value,
-            self.form.input_sepz.property("quantity").Value)
-        storeIfChanged(self.obj, 'PeriodicSeparationVector', separation_vector)
+            self.form.input_sepz.property("quantity").Value,
+        )
+        storeIfChanged(self.obj, "PeriodicSeparationVector", separation_vector)
 
-        storeIfChanged(self.obj, 'PeriodicPartner', self.form.comboBoxPeriodicPartner.currentText())
-        storeIfChanged(self.obj, 'PeriodicMaster', self.form.radioButtonMasterPeriodic.isChecked())
+        storeIfChanged(self.obj, "PeriodicPartner", self.form.comboBoxPeriodicPartner.currentText())
+        storeIfChanged(self.obj, "PeriodicMaster", self.form.radioButtonMasterPeriodic.isChecked())
 
         # Turbulence
         if self.turb_model in CfdFluidBoundary.TURBULENT_INLET_SPEC:
             turb_index = self.form.comboTurbulenceSpecification.currentIndex()
-            storeIfChanged(self.obj, 'TurbulenceInletSpecification',
-                           CfdFluidBoundary.TURBULENT_INLET_SPEC[self.turb_model][1][turb_index])
+            storeIfChanged(
+                self.obj,
+                "TurbulenceInletSpecification",
+                CfdFluidBoundary.TURBULENT_INLET_SPEC[self.turb_model][1][turb_index],
+            )
         else:
-            storeIfChanged(self.obj, 'TurbulenceInletSpecification', self.obj.TurbulenceInletSpecification)
-        storeIfChanged(self.obj, 'TurbulentKineticEnergy', getQuantity(self.form.inputKineticEnergy))
-        storeIfChanged(self.obj, 'SpecificDissipationRate', getQuantity(self.form.inputSpecificDissipationRate))
-        storeIfChanged(self.obj, 'DissipationRate', getQuantity(self.form.inputDissipationRate))
-        storeIfChanged(self.obj, 'NuTilda', getQuantity(self.form.inputNuTilda))
-        storeIfChanged(self.obj, 'Intermittency', getQuantity(self.form.inputGammaInt))
-        storeIfChanged(self.obj, 'ReThetat', getQuantity(self.form.inputReThetat))
-        storeIfChanged(self.obj, 'TurbulentViscosity', getQuantity(self.form.inputTurbulentViscosity))
-        storeIfChanged(self.obj, 'kEqnTurbulentKineticEnergy', getQuantity(self.form.inputKineticEnergy))
-        storeIfChanged(self.obj, 'kEqnTurbulentViscosity', getQuantity(self.form.inputTurbulentViscosity))
-        storeIfChanged(self.obj, 'TurbulenceIntensityPercentage', getQuantity(self.form.inputIntensity))
-        storeIfChanged(self.obj, 'TurbulenceLengthScale', getQuantity(self.form.inputLengthScale))
+            storeIfChanged(
+                self.obj, "TurbulenceInletSpecification", self.obj.TurbulenceInletSpecification
+            )
+        storeIfChanged(
+            self.obj, "TurbulentKineticEnergy", getQuantity(self.form.inputKineticEnergy)
+        )
+        storeIfChanged(
+            self.obj, "SpecificDissipationRate", getQuantity(self.form.inputSpecificDissipationRate)
+        )
+        storeIfChanged(self.obj, "DissipationRate", getQuantity(self.form.inputDissipationRate))
+        storeIfChanged(self.obj, "NuTilda", getQuantity(self.form.inputNuTilda))
+        storeIfChanged(self.obj, "Intermittency", getQuantity(self.form.inputGammaInt))
+        storeIfChanged(self.obj, "ReThetat", getQuantity(self.form.inputReThetat))
+        storeIfChanged(
+            self.obj, "TurbulentViscosity", getQuantity(self.form.inputTurbulentViscosity)
+        )
+        storeIfChanged(
+            self.obj, "kEqnTurbulentKineticEnergy", getQuantity(self.form.inputKineticEnergy)
+        )
+        storeIfChanged(
+            self.obj, "kEqnTurbulentViscosity", getQuantity(self.form.inputTurbulentViscosity)
+        )
+        storeIfChanged(
+            self.obj, "TurbulenceIntensityPercentage", getQuantity(self.form.inputIntensity)
+        )
+        storeIfChanged(self.obj, "TurbulenceLengthScale", getQuantity(self.form.inputLengthScale))
 
         # Multiphase
-        storeIfChanged(self.obj, 'VolumeFractions', self.alphas)
+        storeIfChanged(self.obj, "VolumeFractions", self.alphas)
 
         # Porous
-        storeIfChanged(self.obj, 'PorousBaffleMethod',
-                       CfdFluidBoundary.POROUS_METHODS[self.form.buttonGroupPorous.checkedId()])
-        storeIfChanged(self.obj, 'PressureDropCoeff', getQuantity(self.form.inputPressureDropCoeff))
-        storeIfChanged(self.obj, 'ScreenWireDiameter', getQuantity(self.form.inputWireDiameter))
-        storeIfChanged(self.obj, 'ScreenSpacing', getQuantity(self.form.inputSpacing))
+        storeIfChanged(
+            self.obj,
+            "PorousBaffleMethod",
+            CfdFluidBoundary.POROUS_METHODS[self.form.buttonGroupPorous.checkedId()],
+        )
+        storeIfChanged(self.obj, "PressureDropCoeff", getQuantity(self.form.inputPressureDropCoeff))
+        storeIfChanged(self.obj, "ScreenWireDiameter", getQuantity(self.form.inputWireDiameter))
+        storeIfChanged(self.obj, "ScreenSpacing", getQuantity(self.form.inputSpacing))
 
         # Only update references if changed
         if self.obj.ShapeRefs != self.ShapeRefsOrig:
             refstr = "FreeCAD.ActiveDocument.{}.ShapeRefs = [\n".format(self.obj.Name)
-            refstr += ',\n'.join(
-                "(FreeCAD.ActiveDocument.getObject('{}'), {})".format(ref[0].Name, ref[1]) for ref in self.obj.ShapeRefs)
+            refstr += ",\n".join(
+                "(FreeCAD.ActiveDocument.getObject('{}'), {})".format(ref[0].Name, ref[1])
+                for ref in self.obj.ShapeRefs
+            )
             refstr += "]"
             FreeCADGui.doCommand(refstr)
 
         # Default boundary
         defaultBoundary = self.form.checkBoxDefaultBoundary.isChecked()
-        storeIfChanged(self.obj, 'DefaultBoundary', defaultBoundary)
+        storeIfChanged(self.obj, "DefaultBoundary", defaultBoundary)
         if defaultBoundary:
             # Deactivate previous default boundary, if any
             boundaries = CfdTools.getCfdBoundaryGroup(CfdTools.getParentAnalysisObject(self.obj))
             for b in boundaries:
                 if b.Name != self.obj.Name and b.DefaultBoundary:
-                    FreeCADGui.doCommand("FreeCAD.ActiveDocument.{}.DefaultBoundary = False".format(b.Name))
+                    FreeCADGui.doCommand(
+                        "FreeCAD.ActiveDocument.{}.DefaultBoundary = False".format(b.Name)
+                    )
 
         FreeCADGui.doCommand("FreeCAD.ActiveDocument.recompute()")
 

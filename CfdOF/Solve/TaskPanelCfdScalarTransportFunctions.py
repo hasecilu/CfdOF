@@ -24,6 +24,7 @@ import os
 import os.path
 from CfdOF import CfdTools
 from CfdOF.CfdTools import getQuantity, setQuantity, storeIfChanged, indexOrDefault
+
 if FreeCAD.GuiUp:
     import FreeCADGui
 
@@ -32,15 +33,18 @@ class TaskPanelCfdScalarTransportFunctions:
     """
     Task panel for adding solver scalar transport function objects
     """
+
     def __init__(self, obj):
         self.obj = obj
         self.analysis_obj = CfdTools.getParentAnalysisObject(obj)
         self.physics_model = CfdTools.getPhysicsModel(self.analysis_obj)
         self.material_objs = CfdTools.getMaterials(self.analysis_obj)
 
-        ui_path = os.path.join(CfdTools.getModulePath(), 'Gui', "TaskPanelCfdScalarTransportFunctions.ui")
+        ui_path = os.path.join(
+            CfdTools.getModulePath(), "Gui", "TaskPanelCfdScalarTransportFunctions.ui"
+        )
         self.form = FreeCADGui.PySideUic.loadUi(ui_path)
-        
+
         self.load()
         self.updateUI()
 
@@ -72,7 +76,7 @@ class TaskPanelCfdScalarTransportFunctions:
 
     def updateUI(self):
         # Multiphase
-        mp = (self.physics_model and self.physics_model.Phase != 'Single')
+        mp = self.physics_model and self.physics_model.Phase != "Single"
         self.form.checkRestrictToPhase.setVisible(mp)
         self.form.comboPhase.setVisible(mp)
 
@@ -81,18 +85,19 @@ class TaskPanelCfdScalarTransportFunctions:
         doc.resetEdit()
 
         # Type
-        storeIfChanged(self.obj, 'FieldName', self.form.inputScalarFieldName.text())
-        storeIfChanged(self.obj, 'DiffusivityFixed', self.form.radioUniformDiffusivity.isChecked())
-        storeIfChanged(self.obj, 'DiffusivityFixedValue', getQuantity(self.form.inputDiffusivity))
-        storeIfChanged(self.obj, 'RestrictToPhase', self.form.checkRestrictToPhase.isChecked())
-        storeIfChanged(self.obj, 'PhaseName', self.form.comboPhase.currentText())
+        storeIfChanged(self.obj, "FieldName", self.form.inputScalarFieldName.text())
+        storeIfChanged(self.obj, "DiffusivityFixed", self.form.radioUniformDiffusivity.isChecked())
+        storeIfChanged(self.obj, "DiffusivityFixedValue", getQuantity(self.form.inputDiffusivity))
+        storeIfChanged(self.obj, "RestrictToPhase", self.form.checkRestrictToPhase.isChecked())
+        storeIfChanged(self.obj, "PhaseName", self.form.comboPhase.currentText())
 
         injection_point = FreeCAD.Vector(
             self.form.inputInjectionPointx.property("quantity").Value,
             self.form.inputInjectionPointy.property("quantity").Value,
-            self.form.inputInjectionPointz.property("quantity").Value)
-        storeIfChanged(self.obj, 'InjectionPoint', injection_point)
-        storeIfChanged(self.obj, 'InjectionRate', getQuantity(self.form.inputInjectionRate))
+            self.form.inputInjectionPointz.property("quantity").Value,
+        )
+        storeIfChanged(self.obj, "InjectionPoint", injection_point)
+        storeIfChanged(self.obj, "InjectionRate", getQuantity(self.form.inputInjectionRate))
 
         # Finalise
         FreeCADGui.doCommand("FreeCAD.ActiveDocument.recompute()")

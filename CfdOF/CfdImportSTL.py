@@ -29,12 +29,12 @@ import tempfile
 # in a single STL file
 
 # Python's open is masked by the function below
-if open.__module__ in ['__builtin__','io']:
+if open.__module__ in ["__builtin__", "io"]:
     pythonopen = open
 
 
 def open(filename):
-    """ Called to open a file """
+    """Called to open a file"""
     docname = os.path.splitext(os.path.basename(filename))[0]
     doc = FreeCAD.newDocument(docname.encode("utf8"))
     doc.Label = docname
@@ -42,7 +42,7 @@ def open(filename):
 
 
 def insert(filename, doc_name):
-    """ Called to import a file """
+    """Called to import a file"""
     try:
         doc = FreeCAD.getDocument(doc_name)
     except NameError:
@@ -54,20 +54,20 @@ def insert(filename, doc_name):
             solidline = infile.readline()
             if not solidline:
                 break
-            solidlinewords = solidline.strip().split(' ', 1)
-            if solidlinewords[0] != 'solid' or len(solidlinewords) != 2:
+            solidlinewords = solidline.strip().split(" ", 1)
+            if solidlinewords[0] != "solid" or len(solidlinewords) != 2:
                 raise RuntimeError("Expected line of the form 'solid <name>'")
             solidname = solidlinewords[1]
             with tempfile.TemporaryDirectory() as tmpdirname:
-                filename = os.path.normpath(os.path.join(tmpdirname, solidname+'.stl'))
-                with pythonopen(filename, mode='w') as tmp_file:
+                filename = os.path.normpath(os.path.join(tmpdirname, solidname + ".stl"))
+                with pythonopen(filename, mode="w") as tmp_file:
                     tmp_file.write(solidline)
                     while True:  # Keep reading triangles
                         line = infile.readline()
                         if not line:
                             break
                         tmp_file.write(line)
-                        if line.startswith('endsolid'):
+                        if line.startswith("endsolid"):
                             break
                 Mesh.insert(filename, doc_name)
 

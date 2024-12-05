@@ -35,7 +35,10 @@ class TaskPanelCfdDynamicMeshInterfaceRefinement:
         self.material_objs = material_objs
 
         self.form = FreeCADGui.PySideUic.loadUi(
-                    os.path.join(CfdTools.getModulePath(), 'Gui', "TaskPanelCfdDynamicMeshInterfaceRefinement.ui"))
+            os.path.join(
+                CfdTools.getModulePath(), "Gui", "TaskPanelCfdDynamicMeshInterfaceRefinement.ui"
+            )
+        )
 
         self.load()
 
@@ -44,10 +47,10 @@ class TaskPanelCfdDynamicMeshInterfaceRefinement:
         self.updateUI()
 
     def load(self):
-        """ fills the widgets """
+        """fills the widgets"""
 
         # Add volume fraction fields
-        if self.physics_model.Phase != 'Single':
+        if self.physics_model.Phase != "Single":
             mat_names = []
             for m in self.material_objs:
                 mat_names.append(m.Label)
@@ -70,11 +73,17 @@ class TaskPanelCfdDynamicMeshInterfaceRefinement:
         doc = FreeCADGui.getDocument(self.obj.Document)
         doc.resetEdit()
 
-        storeIfChanged(self.obj, 'Phase', self.form.cb_fluid.currentText())
-        storeIfChanged(self.obj, 'RefinementInterval', int(self.form.sb_refinement_interval.value()))
-        storeIfChanged(self.obj, 'MaxRefinementLevel', int(self.form.sb_max_refinement_levels.value()))
-        storeIfChanged(self.obj, 'BufferLayers', int(self.form.sb_no_buffer_layers.value()))
-        storeIfChanged(self.obj, 'WriteFields', self.form.cb_write_refinement_volscalarfield.isChecked())
+        storeIfChanged(self.obj, "Phase", self.form.cb_fluid.currentText())
+        storeIfChanged(
+            self.obj, "RefinementInterval", int(self.form.sb_refinement_interval.value())
+        )
+        storeIfChanged(
+            self.obj, "MaxRefinementLevel", int(self.form.sb_max_refinement_levels.value())
+        )
+        storeIfChanged(self.obj, "BufferLayers", int(self.form.sb_no_buffer_layers.value()))
+        storeIfChanged(
+            self.obj, "WriteFields", self.form.cb_write_refinement_volscalarfield.isChecked()
+        )
 
         # Finalise
         FreeCADGui.doCommand("FreeCAD.ActiveDocument.recompute()")
@@ -82,4 +91,3 @@ class TaskPanelCfdDynamicMeshInterfaceRefinement:
     def reject(self):
         doc = FreeCADGui.getDocument(self.obj.Document)
         doc.resetEdit()
-

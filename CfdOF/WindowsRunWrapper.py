@@ -30,20 +30,20 @@ import subprocess
 
 def processStdin():
     with sys.stdin:
-        for line in iter(sys.stdin.readline, ''):
+        for line in iter(sys.stdin.readline, ""):
             if line.rstrip() == "terminate":
                 print("Wrapper process received terminate command")
                 process.send_signal(signal.CTRL_BREAK_EVENT)
                 with process.stdin:
                     # The CTRL+BREAK puts (some versions of?) PowerShell into Debug mode - exit that
-                    process.stdin.write('q\n')
-                    process.stdin.write('Y\n')
+                    process.stdin.write("q\n")
+                    process.stdin.write("Y\n")
 
 
 def processStdout():
     with process.stdout:
         try:
-            for output in iter(process.stdout.readline, ''):
+            for output in iter(process.stdout.readline, ""):
                 sys.stdout.write(output)
                 sys.stdout.flush()
         except UnicodeDecodeError:
@@ -54,7 +54,7 @@ def processStdout():
 def processStderr():
     with process.stderr:
         try:
-            for output in iter(process.stderr.readline, ''):
+            for output in iter(process.stderr.readline, ""):
                 sys.stderr.write(output)
                 sys.stderr.flush()
         except UnicodeDecodeError:
@@ -64,13 +64,16 @@ def processStderr():
 
 # Run program, return its exit code, while awaiting quit instruction on stdin pipe
 argv = sys.argv
-process = subprocess.Popen(argv[1:],
-                           # Although we don't access stdin of subprocess, without stdin=PIPE,
-                           # delivery to our (the parent's) stdin from outside seems very unreliable
-                           stdin=subprocess.PIPE,
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                           creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-                           universal_newlines=True)
+process = subprocess.Popen(
+    argv[1:],
+    # Although we don't access stdin of subprocess, without stdin=PIPE,
+    # delivery to our (the parent's) stdin from outside seems very unreliable
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+    universal_newlines=True,
+)
 # Start threads to await input/output.
 t1 = threading.Thread(target=processStdin)
 t1.daemon = True

@@ -27,9 +27,9 @@ import os
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
-MESHER_DESCRIPTIONS = ['cfMesh', 'snappyHexMesh', 'gmsh (tetrahedral)', 'gmsh (polyhedral)']
-MESHERS = ['cfMesh', 'snappyHexMesh', 'gmsh', 'gmsh']
-DIMENSION = ['3D', '3D', '3D', '3D']
+MESHER_DESCRIPTIONS = ["cfMesh", "snappyHexMesh", "gmsh (tetrahedral)", "gmsh (polyhedral)"]
+MESHERS = ["cfMesh", "snappyHexMesh", "gmsh", "gmsh"]
+DIMENSION = ["3D", "3D", "3D", "3D"]
 DUAL_CONVERSION = [False, False, False, True]
 
 
@@ -44,19 +44,25 @@ def makeCfdMesh(name="CFDMesh"):
 class CommandCfdMeshFromShape:
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "mesh.svg")
-        return {'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_MeshFromShape",
-                                                     "CFD mesh"),
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_MeshFromShape",
-                                                    "Create a mesh using cfMesh, snappyHexMesh or gmsh")}
+        return {
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_MeshFromShape", "CFD mesh"),
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_MeshFromShape", "Create a mesh using cfMesh, snappyHexMesh or gmsh"
+            ),
+        }
 
     def IsActive(self):
         sel = FreeCADGui.Selection.getSelection()
         analysis = CfdTools.getActiveAnalysis()
         existing_mesh = CfdTools.getMesh(analysis)
         return existing_mesh is not None or (
-            analysis is not None and sel and len(sel) == 1 and sel[0].isDerivedFrom("Part::Feature") and
-            not sel[0].Shape.isNull())
+            analysis is not None
+            and sel
+            and len(sel) == 1
+            and sel[0].isDerivedFrom("Part::Feature")
+            and not sel[0].Shape.isNull()
+        )
 
     def Activated(self):
         FreeCAD.ActiveDocument.openTransaction("Create CFD mesh")
@@ -70,11 +76,15 @@ class CommandCfdMeshFromShape:
                         mesh_obj_name = sel[0].Name + "_Mesh"
                         FreeCADGui.doCommand("from CfdOF.Mesh import CfdMesh")
                         FreeCADGui.doCommand("CfdMesh.makeCfdMesh('" + mesh_obj_name + "')")
-                        FreeCADGui.doCommand("App.ActiveDocument.ActiveObject.Part = App.ActiveDocument." + sel[0].Name)
+                        FreeCADGui.doCommand(
+                            "App.ActiveDocument.ActiveObject.Part = App.ActiveDocument."
+                            + sel[0].Name
+                        )
                         if CfdTools.getActiveAnalysis():
                             FreeCADGui.doCommand("from CfdOF import CfdTools")
                             FreeCADGui.doCommand(
-                                "CfdTools.getActiveAnalysis().addObject(App.ActiveDocument.ActiveObject)")
+                                "CfdTools.getActiveAnalysis().addObject(App.ActiveDocument.ActiveObject)"
+                            )
                         FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)
             else:
                 FreeCADGui.activeDocument().setEdit(mesh_obj.Name)
@@ -82,10 +92,10 @@ class CommandCfdMeshFromShape:
 
 
 class CfdMesh:
-    """ CFD mesh properties """
+    """CFD mesh properties"""
 
     # Variables that need to be used outside this class and therefore are included outside of the constructor
-    known_element_dimensions = ['2D', '3D']
+    known_element_dimensions = ["2D", "3D"]
 
     def __init__(self, obj):
         self.Type = "CfdMesh"
@@ -94,54 +104,133 @@ class CfdMesh:
         self.initProperties(obj)
 
     def initProperties(self, obj):
-        addObjectProperty(obj, 'CaseName', "meshCase", "App::PropertyString", "",
-                          "Name of directory in which the mesh is created")
+        addObjectProperty(
+            obj,
+            "CaseName",
+            "meshCase",
+            "App::PropertyString",
+            "",
+            "Name of directory in which the mesh is created",
+        )
 
         # Setup and utility
-        addObjectProperty(obj, 'STLRelativeLinearDeflection', 0.001, "App::PropertyFloat", "Surface triangulation",
-                          "Maximum relative linear deflection for built-in surface triangulation")
-        addObjectProperty(obj, 'STLAngularMeshDensity', 100, "App::PropertyFloat", "Surface triangulation", 
-                          "Mesh elements per 360 degrees for surface triangulation with GMSH")
+        addObjectProperty(
+            obj,
+            "STLRelativeLinearDeflection",
+            0.001,
+            "App::PropertyFloat",
+            "Surface triangulation",
+            "Maximum relative linear deflection for built-in surface triangulation",
+        )
+        addObjectProperty(
+            obj,
+            "STLAngularMeshDensity",
+            100,
+            "App::PropertyFloat",
+            "Surface triangulation",
+            "Mesh elements per 360 degrees for surface triangulation with GMSH",
+        )
 
-        addObjectProperty(obj, 'NumberOfProcesses', 1, "App::PropertyInteger", "",
-                          "Number of parallel processes (only applicable to cfMesh and snappyHexMesh)")
+        addObjectProperty(
+            obj,
+            "NumberOfProcesses",
+            1,
+            "App::PropertyInteger",
+            "",
+            "Number of parallel processes (only applicable to cfMesh and snappyHexMesh)",
+        )
 
-        addObjectProperty(obj, 'NumberOfThreads', 0, "App::PropertyInteger", "",
-                          "Number of parallel threads per process (only applicable to cfMesh and gmsh). "
-                          "0 means use all available (if NumberOfProcesses = 1) or use 1 (if NumberOfProcesses > 1)")
+        addObjectProperty(
+            obj,
+            "NumberOfThreads",
+            0,
+            "App::PropertyInteger",
+            "",
+            "Number of parallel threads per process (only applicable to cfMesh and gmsh). "
+            "0 means use all available (if NumberOfProcesses = 1) or use 1 (if NumberOfProcesses > 1)",
+        )
 
-        addObjectProperty(obj, "Part", None, "App::PropertyLinkGlobal", "Mesh Parameters", "Part object to mesh")
+        addObjectProperty(
+            obj, "Part", None, "App::PropertyLinkGlobal", "Mesh Parameters", "Part object to mesh"
+        )
 
-        if addObjectProperty(obj, "MeshUtility", MESHERS, "App::PropertyEnumeration",
-                             "Mesh Parameters", "Meshing utilities"):
+        if addObjectProperty(
+            obj,
+            "MeshUtility",
+            MESHERS,
+            "App::PropertyEnumeration",
+            "Mesh Parameters",
+            "Meshing utilities",
+        ):
             obj.MeshUtility = MESHERS[0]
 
         # Refinement
-        addObjectProperty(obj, "CharacteristicLengthMax", "0 m", "App::PropertyLength", "Mesh Parameters",
-                          "Max mesh element size (0.0 = infinity)")
+        addObjectProperty(
+            obj,
+            "CharacteristicLengthMax",
+            "0 m",
+            "App::PropertyLength",
+            "Mesh Parameters",
+            "Max mesh element size (0.0 = infinity)",
+        )
 
-        addObjectProperty(obj, 'PointInMesh', {"x": '0 m', "y": '0 m', "z": '0 m'}, "App::PropertyMap",
-                          "Mesh Parameters",
-                          "Location vector inside the region to be meshed (must not coincide with a cell face)")
+        addObjectProperty(
+            obj,
+            "PointInMesh",
+            {"x": "0 m", "y": "0 m", "z": "0 m"},
+            "App::PropertyMap",
+            "Mesh Parameters",
+            "Location vector inside the region to be meshed (must not coincide with a cell face)",
+        )
 
-        addObjectProperty(obj, 'CellsBetweenLevels', 3, "App::PropertyInteger", "Mesh Parameters",
-                          "Number of cells between each level of refinement")
+        addObjectProperty(
+            obj,
+            "CellsBetweenLevels",
+            3,
+            "App::PropertyInteger",
+            "Mesh Parameters",
+            "Number of cells between each level of refinement",
+        )
 
-        addObjectProperty(obj, 'EdgeRefinement', 1, "App::PropertyFloat", "Mesh Parameters",
-                          "Relative edge (feature) refinement")
+        addObjectProperty(
+            obj,
+            "EdgeRefinement",
+            1,
+            "App::PropertyFloat",
+            "Mesh Parameters",
+            "Relative edge (feature) refinement",
+        )
 
         # PolyDualMesh
-        addObjectProperty(obj, 'ConvertToDualMesh', False, "App::PropertyBool", "Mesh Parameters",
-                          "Convert to polyhedral dual mesh")
+        addObjectProperty(
+            obj,
+            "ConvertToDualMesh",
+            False,
+            "App::PropertyBool",
+            "Mesh Parameters",
+            "Convert to polyhedral dual mesh",
+        )
 
         # Edge detection, implicit / explicit (NB Implicit = False implies Explicit = True)
-        addObjectProperty(obj, 'ImplicitEdgeDetection', False, "App::PropertyBool", "Mesh Parameters",
-                          "Use implicit edge detection")
+        addObjectProperty(
+            obj,
+            "ImplicitEdgeDetection",
+            False,
+            "App::PropertyBool",
+            "Mesh Parameters",
+            "Use implicit edge detection",
+        )
 
         # Mesh dimension
-        if addObjectProperty(obj, 'ElementDimension', CfdMesh.known_element_dimensions, "App::PropertyEnumeration",
-                             "Mesh Parameters", "Dimension of mesh elements (Default 3D)"):
-            obj.ElementDimension = '3D'
+        if addObjectProperty(
+            obj,
+            "ElementDimension",
+            CfdMesh.known_element_dimensions,
+            "App::PropertyEnumeration",
+            "Mesh Parameters",
+            "Dimension of mesh elements (Default 3D)",
+        ):
+            obj.ElementDimension = "3D"
 
     def onDocumentRestored(self, obj):
         self.initProperties(obj)
@@ -166,7 +255,8 @@ class CfdMesh:
 
 
 class _CfdMesh:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def onDocumentRestored(self, obj):
         CfdMesh(obj)
 
@@ -185,7 +275,8 @@ class _CfdMesh:
 
 
 class ViewProviderCfdMesh:
-    """ A View Provider for the CfdMesh object """
+    """A View Provider for the CfdMesh object"""
+
     def __init__(self, vobj):
         vobj.Proxy = self
         self.taskd = None
@@ -203,7 +294,7 @@ class ViewProviderCfdMesh:
     def updateData(self, obj, prop):
         analysis_obj = CfdTools.getParentAnalysisObject(obj)
         num_refinement_objs = len(CfdTools.getMeshRefinementObjs(obj))
-        num_dyn_refinement_objs = (0 if CfdTools.getDynamicMeshAdaptation(obj) is None else 1)
+        num_dyn_refinement_objs = 0 if CfdTools.getDynamicMeshAdaptation(obj) is None else 1
         if prop == "Group":
             if analysis_obj and not analysis_obj.Proxy.loading:
                 if num_refinement_objs != self.num_refinement_objs:
@@ -216,7 +307,7 @@ class ViewProviderCfdMesh:
         else:
             if analysis_obj and not analysis_obj.Proxy.loading:
                 if prop == "_GroupTouched":
-                    if (analysis_obj and analysis_obj.Proxy.ignore_next_grouptouched):
+                    if analysis_obj and analysis_obj.Proxy.ignore_next_grouptouched:
                         analysis_obj.Proxy.ignore_next_grouptouched = False
                     else:
                         analysis_obj.NeedsMeshRewrite = True
@@ -224,12 +315,12 @@ class ViewProviderCfdMesh:
                     analysis_obj.NeedsMeshRewrite = True
 
     def onChanged(self, vobj, prop):
-        #CfdTools.setCompSolid(vobj)
+        # CfdTools.setCompSolid(vobj)
         return
 
     def setEdit(self, vobj, mode):
         for obj in FreeCAD.ActiveDocument.Objects:
-            if hasattr(obj, 'Proxy') and isinstance(obj.Proxy, CfdMesh):
+            if hasattr(obj, "Proxy") and isinstance(obj.Proxy, CfdMesh):
                 obj.ViewObject.show()
 
         if self.Object.Part is None:
@@ -238,6 +329,7 @@ class ViewProviderCfdMesh:
 
         from CfdOF.Mesh import TaskPanelCfdMesh
         import importlib
+
         importlib.reload(TaskPanelCfdMesh)
         self.taskd = TaskPanelCfdMesh.TaskPanelCfdMesh(self.Object)
         self.taskd.obj = vobj.Object
@@ -251,13 +343,13 @@ class ViewProviderCfdMesh:
         FreeCADGui.Control.closeDialog()
 
     def doubleClicked(self, vobj):
-        if FreeCADGui.activeWorkbench().name() != 'CfdOFWorkbench':
+        if FreeCADGui.activeWorkbench().name() != "CfdOFWorkbench":
             FreeCADGui.activateWorkbench("CfdOFWorkbench")
         gui_doc = FreeCADGui.getDocument(vobj.Object.Document)
         if not gui_doc.getInEdit():
             gui_doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Task dialog already open\n')
+            FreeCAD.Console.PrintError("Task dialog already open\n")
             FreeCADGui.Control.showTaskView()
         return True
 
@@ -284,7 +376,8 @@ class ViewProviderCfdMesh:
 
 
 class _ViewProviderCfdMesh:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def attach(self, vobj):
         new_proxy = ViewProviderCfdMesh(vobj)
         new_proxy.attach(vobj)

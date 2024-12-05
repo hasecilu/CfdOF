@@ -25,6 +25,7 @@
 import os
 import os.path
 import FreeCAD
+
 if FreeCAD.GuiUp:
     import FreeCADGui
 from CfdOF import CfdTools
@@ -39,8 +40,9 @@ class TaskPanelCfdInitialiseInternalFlowField:
         self.boundaries = boundaries
         self.material_objs = material_objs
 
-        self.form = FreeCADGui.PySideUic.loadUi(os.path.join(CfdTools.getModulePath(), 'Gui',
-                                                             "TaskPanelCfdInitialiseInternalField.ui"))
+        self.form = FreeCADGui.PySideUic.loadUi(
+            os.path.join(CfdTools.getModulePath(), "Gui", "TaskPanelCfdInitialiseInternalField.ui")
+        )
 
         self.form.velocityFrame.setVisible(False)
         self.form.pressureFrame.setVisible(False)
@@ -57,10 +59,12 @@ class TaskPanelCfdInitialiseInternalFlowField:
 
         self.form.radioButtonPotentialFlowU.setToolTip(
             "Initialise the velocity field using an incompressible, potential "
-            "(irrotational) flow assumption.")
+            "(irrotational) flow assumption."
+        )
         self.form.radioButtonPotentialFlowP.setToolTip(
             "Initialise the pressure field using an incompressible, potential "
-            "(irrotational) flow assumption.")
+            "(irrotational) flow assumption."
+        )
 
         self.alphas = {}
         self.load()
@@ -90,7 +94,7 @@ class TaskPanelCfdInitialiseInternalFlowField:
 
         # Add volume fraction fields
         self.alphas = self.obj.VolumeFractions
-        if self.physicsModel.Phase != 'Single':
+        if self.physicsModel.Phase != "Single":
             mat_names = []
             for m in self.material_objs:
                 mat_names.append(m.Label)
@@ -120,20 +124,28 @@ class TaskPanelCfdInitialiseInternalFlowField:
 
         # Add any inlets to the lists
         for b in self.boundaries:
-            if b.BoundaryType in ['inlet', 'open']:
+            if b.BoundaryType in ["inlet", "open"]:
                 self.form.comboBoundaryU.addItem(b.Label, b.Name)
                 self.form.comboBoundaryT.addItem(b.Label, b.Name)
                 self.form.comboBoundaryTurb.addItem(b.Label, b.Name)
-            if b.BoundaryType in ['inlet', 'outlet', 'open']:
+            if b.BoundaryType in ["inlet", "outlet", "open"]:
                 self.form.comboBoundaryP.addItem(b.Label, b.Name)
         if self.obj.BoundaryU is not None:
-            self.form.comboBoundaryU.setCurrentIndex(self.form.comboBoundaryU.findData(self.obj.BoundaryU.Name))
+            self.form.comboBoundaryU.setCurrentIndex(
+                self.form.comboBoundaryU.findData(self.obj.BoundaryU.Name)
+            )
         if self.obj.BoundaryP is not None:
-            self.form.comboBoundaryP.setCurrentIndex(self.form.comboBoundaryP.findData(self.obj.BoundaryP.Name))
+            self.form.comboBoundaryP.setCurrentIndex(
+                self.form.comboBoundaryP.findData(self.obj.BoundaryP.Name)
+            )
         if self.obj.BoundaryT is not None:
-            self.form.comboBoundaryT.setCurrentIndex(self.form.comboBoundaryT.findData(self.obj.BoundaryT.Name))
+            self.form.comboBoundaryT.setCurrentIndex(
+                self.form.comboBoundaryT.findData(self.obj.BoundaryT.Name)
+            )
         if self.obj.BoundaryTurb is not None:
-            self.form.comboBoundaryTurb.setCurrentIndex(self.form.comboBoundaryTurb.findData(self.obj.BoundaryTurb.Name))
+            self.form.comboBoundaryTurb.setCurrentIndex(
+                self.form.comboBoundaryTurb.findData(self.obj.BoundaryTurb.Name)
+            )
 
         self.updateUi()
 
@@ -150,19 +162,19 @@ class TaskPanelCfdInitialiseInternalFlowField:
         self.form.pressureFrame.setVisible(not (potential_flow_P or use_outlet_P))
 
         # Multiphase
-        if self.physicsModel.Phase != 'Single':
+        if self.physicsModel.Phase != "Single":
             self.form.volumeFractionsFrame.setVisible(True)
         else:
             self.form.volumeFractionsFrame.setVisible(False)
 
         # Turbulence
-        if self.physicsModel.Turbulence in ['RANS', 'DES', 'LES']:
+        if self.physicsModel.Turbulence in ["RANS", "DES", "LES"]:
             self.form.turbulencePropertiesFrame.setVisible(True)
         else:
             self.form.turbulencePropertiesFrame.setVisible(False)
 
         # Thermal / energy
-        if self.physicsModel.Flow != 'Isothermal':
+        if self.physicsModel.Flow != "Isothermal":
             self.form.energyFrame.setVisible(not use_inlet_temp)
         else:
             self.form.thermalPropertiesFrame.setVisible(False)
@@ -185,33 +197,35 @@ class TaskPanelCfdInitialiseInternalFlowField:
         self.form.leskEqnFrame.setVisible(False)
 
         # RANS
-        if self.physicsModel.TurbulenceModel == 'kOmegaSST':
+        if self.physicsModel.TurbulenceModel == "kOmegaSST":
             self.form.kOmegaSSTFrame.setVisible(not use_inlet_turb)
-        elif self.physicsModel.TurbulenceModel == 'kEpsilon':
+        elif self.physicsModel.TurbulenceModel == "kEpsilon":
             self.form.kEpsilonFrame.setVisible(not use_inlet_turb)
-        elif self.physicsModel.TurbulenceModel == 'SpalartAllmaras':
+        elif self.physicsModel.TurbulenceModel == "SpalartAllmaras":
             self.form.SpalartAllmarasFrame.setVisible(not use_inlet_turb)
-        elif self.physicsModel.TurbulenceModel == 'kOmegaSSTLM':
+        elif self.physicsModel.TurbulenceModel == "kOmegaSSTLM":
             self.form.kOmegaSSTFrame.setVisible(not use_inlet_turb)
             self.form.kOmegaSSTLMFrame.setVisible(not use_inlet_turb)
-        #DES
-        elif self.physicsModel.TurbulenceModel == 'kOmegaSSTDES':
+        # DES
+        elif self.physicsModel.TurbulenceModel == "kOmegaSSTDES":
             self.form.kOmegaSSTFrame.setVisible(not use_inlet_turb)
-        elif self.physicsModel.TurbulenceModel == 'kOmegaSSTDDES':
+        elif self.physicsModel.TurbulenceModel == "kOmegaSSTDDES":
             self.form.kOmegaSSTFrame.setVisible(not use_inlet_turb)
-        elif self.physicsModel.TurbulenceModel == 'kOmegaSSTIDDES':
+        elif self.physicsModel.TurbulenceModel == "kOmegaSSTIDDES":
             self.form.kOmegaSSTFrame.setVisible(not use_inlet_turb)
-        elif self.physicsModel.TurbulenceModel == 'SpalartAllmarasDES':
+        elif self.physicsModel.TurbulenceModel == "SpalartAllmarasDES":
             self.form.SpalartAllmarasFrame.setVisible(not use_inlet_turb)
-        elif self.physicsModel.TurbulenceModel == 'SpalartAllmarasDDES':
+        elif self.physicsModel.TurbulenceModel == "SpalartAllmarasDDES":
             self.form.SpalartAllmarasFrame.setVisible(not use_inlet_turb)
-        elif self.physicsModel.TurbulenceModel == 'SpalartAllmarasIDDES':
+        elif self.physicsModel.TurbulenceModel == "SpalartAllmarasIDDES":
             self.form.SpalartAllmarasFrame.setVisible(not use_inlet_turb)
-        #LES
-        elif self.physicsModel.TurbulenceModel == 'Smagorinsky' or \
-            self.physicsModel.TurbulenceModel == 'WALE':
+        # LES
+        elif (
+            self.physicsModel.TurbulenceModel == "Smagorinsky"
+            or self.physicsModel.TurbulenceModel == "WALE"
+        ):
             self.form.lesModelsFrame.setVisible(not use_inlet_turb)
-        elif self.physicsModel.TurbulenceModel == 'kEqn':
+        elif self.physicsModel.TurbulenceModel == "kEqn":
             self.form.leskEqnFrame.setVisible(not use_inlet_turb)
 
     def radioChanged(self):
@@ -221,7 +235,9 @@ class TaskPanelCfdInitialiseInternalFlowField:
         return self.material_objs[index].Label
 
     def comboFluidChanged(self, index):
-        setQuantity(self.form.inputVolumeFraction, self.alphas.get(self.getMaterialName(index), '0.0'))
+        setQuantity(
+            self.form.inputVolumeFraction, self.alphas.get(self.getMaterialName(index), "0.0")
+        )
 
     def inputVolumeFractionChanged(self):
         self.alphas[self.form.comboFluid.currentText()] = getQuantity(self.form.inputVolumeFraction)
@@ -231,40 +247,48 @@ class TaskPanelCfdInitialiseInternalFlowField:
         doc.resetEdit()
 
         # Velocity
-        storeIfChanged(self.obj, 'PotentialFlow', self.form.radioButtonPotentialFlowU.isChecked())
-        storeIfChanged(self.obj, 'UseInletUValues', self.form.radioButtonUseInletValuesU.isChecked())
-        storeIfChanged(self.obj, 'Ux', getQuantity(self.form.Ux))
-        storeIfChanged(self.obj, 'Uy', getQuantity(self.form.Uy))
-        storeIfChanged(self.obj, 'Uz', getQuantity(self.form.Uz))
+        storeIfChanged(self.obj, "PotentialFlow", self.form.radioButtonPotentialFlowU.isChecked())
+        storeIfChanged(
+            self.obj, "UseInletUValues", self.form.radioButtonUseInletValuesU.isChecked()
+        )
+        storeIfChanged(self.obj, "Ux", getQuantity(self.form.Ux))
+        storeIfChanged(self.obj, "Uy", getQuantity(self.form.Uy))
+        storeIfChanged(self.obj, "Uz", getQuantity(self.form.Uz))
 
         # Pressure
-        storeIfChanged(self.obj, 'UseOutletPValue', self.form.radioButtonUseInletValuesP.isChecked())
-        storeIfChanged(self.obj, 'PotentialFlowP', self.form.radioButtonPotentialFlowP.isChecked())
-        storeIfChanged(self.obj, 'Pressure', getQuantity(self.form.pressure))
+        storeIfChanged(
+            self.obj, "UseOutletPValue", self.form.radioButtonUseInletValuesP.isChecked()
+        )
+        storeIfChanged(self.obj, "PotentialFlowP", self.form.radioButtonPotentialFlowP.isChecked())
+        storeIfChanged(self.obj, "Pressure", getQuantity(self.form.pressure))
 
         # Multiphase
-        storeIfChanged(self.obj, 'VolumeFractions', self.alphas)
+        storeIfChanged(self.obj, "VolumeFractions", self.alphas)
 
         # Thermal
-        storeIfChanged(self.obj, 'UseInletTemperatureValue', self.form.checkUseInletValuesThermal.isChecked())
-        storeIfChanged(self.obj, 'Temperature', getQuantity(self.form.inputTemperature))
+        storeIfChanged(
+            self.obj, "UseInletTemperatureValue", self.form.checkUseInletValuesThermal.isChecked()
+        )
+        storeIfChanged(self.obj, "Temperature", getQuantity(self.form.inputTemperature))
 
         # Turbulence
-        storeIfChanged(self.obj, 'UseInletTurbulenceValues', self.form.checkUseInletValuesTurb.isChecked())
+        storeIfChanged(
+            self.obj, "UseInletTurbulenceValues", self.form.checkUseInletValuesTurb.isChecked()
+        )
         if self.form.kEpsilonFrame.isVisible():
-            storeIfChanged(self.obj, 'k', getQuantity(self.form.inputkEpsk))
-        storeIfChanged(self.obj, 'epsilon', getQuantity(self.form.inputEpsilon))
+            storeIfChanged(self.obj, "k", getQuantity(self.form.inputkEpsk))
+        storeIfChanged(self.obj, "epsilon", getQuantity(self.form.inputEpsilon))
         if self.form.kOmegaSSTFrame.isVisible():
-            storeIfChanged(self.obj, 'k', getQuantity(self.form.inputkOmegak))
-        storeIfChanged(self.obj, 'omega', getQuantity(self.form.inputOmega))
-        storeIfChanged(self.obj, 'nuTilda', getQuantity(self.form.inputnuTilda))
-        storeIfChanged(self.obj, 'gammaInt', getQuantity(self.form.inputGammaInt))
-        storeIfChanged(self.obj, 'ReThetat', getQuantity(self.form.inputReThetat))
-        if self.form.lesModelsFrame.isVisible():        
-            storeIfChanged(self.obj, 'nut', getQuantity(self.form.inputTurbulentViscosity))
+            storeIfChanged(self.obj, "k", getQuantity(self.form.inputkOmegak))
+        storeIfChanged(self.obj, "omega", getQuantity(self.form.inputOmega))
+        storeIfChanged(self.obj, "nuTilda", getQuantity(self.form.inputnuTilda))
+        storeIfChanged(self.obj, "gammaInt", getQuantity(self.form.inputGammaInt))
+        storeIfChanged(self.obj, "ReThetat", getQuantity(self.form.inputReThetat))
+        if self.form.lesModelsFrame.isVisible():
+            storeIfChanged(self.obj, "nut", getQuantity(self.form.inputTurbulentViscosity))
         if self.form.leskEqnFrame.isVisible():
-            storeIfChanged(self.obj, 'k', getQuantity(self.form.inputkEqnKineticEnergy))
-            storeIfChanged(self.obj, 'nut', getQuantity(self.form.inputkEqnTurbulentViscosity))
+            storeIfChanged(self.obj, "k", getQuantity(self.form.inputkEqnKineticEnergy))
+            storeIfChanged(self.obj, "nut", getQuantity(self.form.inputkEqnTurbulentViscosity))
 
         boundaryU = self.form.comboBoundaryU.currentData()
         boundaryP = self.form.comboBoundaryP.currentData()
@@ -273,28 +297,42 @@ class TaskPanelCfdInitialiseInternalFlowField:
 
         if boundaryU and self.obj.UseInletUValues:
             if not self.obj.BoundaryU or boundaryU != self.obj.BoundaryU.Name:
-                FreeCADGui.doCommand("FreeCAD.ActiveDocument.{}.BoundaryU = FreeCAD.ActiveDocument.{}".format(
-                    self.obj.Name, boundaryU))
+                FreeCADGui.doCommand(
+                    "FreeCAD.ActiveDocument.{}.BoundaryU = FreeCAD.ActiveDocument.{}".format(
+                        self.obj.Name, boundaryU
+                    )
+                )
         elif self.obj.BoundaryU:
             FreeCADGui.doCommand("FreeCAD.ActiveDocument.{}.BoundaryU = None".format(self.obj.Name))
         if boundaryP and self.obj.UseOutletPValue:
             if not self.obj.BoundaryP or boundaryP != self.obj.BoundaryP.Name:
-                FreeCADGui.doCommand("FreeCAD.ActiveDocument.{}.BoundaryP = FreeCAD.ActiveDocument.{}".format(
-                    self.obj.Name, boundaryP))
+                FreeCADGui.doCommand(
+                    "FreeCAD.ActiveDocument.{}.BoundaryP = FreeCAD.ActiveDocument.{}".format(
+                        self.obj.Name, boundaryP
+                    )
+                )
         elif self.obj.BoundaryP:
             FreeCADGui.doCommand("FreeCAD.ActiveDocument.{}.BoundaryP = None".format(self.obj.Name))
         if boundaryT and self.obj.UseInletTemperatureValue:
             if not self.obj.BoundaryT or boundaryT != self.obj.BoundaryT.Name:
-                FreeCADGui.doCommand("FreeCAD.ActiveDocument.{}.BoundaryT = FreeCAD.ActiveDocument.{}".format(
-                    self.obj.Name, boundaryT))
+                FreeCADGui.doCommand(
+                    "FreeCAD.ActiveDocument.{}.BoundaryT = FreeCAD.ActiveDocument.{}".format(
+                        self.obj.Name, boundaryT
+                    )
+                )
         elif self.obj.BoundaryT:
             FreeCADGui.doCommand("FreeCAD.ActiveDocument.{}.BoundaryT = None".format(self.obj.Name))
         if boundaryTurb and self.obj.UseInletTurbulenceValues:
             if not self.obj.BoundaryTurb or boundaryTurb != self.obj.BoundaryTurb.Name:
-                FreeCADGui.doCommand("FreeCAD.ActiveDocument.{}.BoundaryTurb = FreeCAD.ActiveDocument.{}".format(
-                    self.obj.Name, boundaryTurb))
+                FreeCADGui.doCommand(
+                    "FreeCAD.ActiveDocument.{}.BoundaryTurb = FreeCAD.ActiveDocument.{}".format(
+                        self.obj.Name, boundaryTurb
+                    )
+                )
         elif self.obj.BoundaryTurb:
-            FreeCADGui.doCommand("FreeCAD.ActiveDocument.{}.BoundaryTurb = None".format(self.obj.Name))
+            FreeCADGui.doCommand(
+                "FreeCAD.ActiveDocument.{}.BoundaryTurb = None".format(self.obj.Name)
+            )
 
     def reject(self):
         doc = FreeCADGui.getDocument(self.obj.Document)

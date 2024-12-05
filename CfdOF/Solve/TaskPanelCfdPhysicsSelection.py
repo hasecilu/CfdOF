@@ -25,16 +25,23 @@
 import os
 import os.path
 import FreeCAD
+
 if FreeCAD.GuiUp:
     import FreeCADGui
 from CfdOF import CfdTools
 from CfdOF.CfdTools import getQuantity, setQuantity, storeIfChanged
 
 
-RANS_MODELS = ['kOmegaSST', 'kEpsilon', 'SpalartAllmaras', 'kOmegaSSTLM']
-DES_MODELS = ['kOmegaSSTDES', 'kOmegaSSTDDES', 'kOmegaSSTIDDES', 'SpalartAllmarasDES', 'SpalartAllmarasDDES',
-              'SpalartAllmarasIDDES']
-LES_MODELS = ['kEqn', 'Smagorinsky', 'WALE']
+RANS_MODELS = ["kOmegaSST", "kEpsilon", "SpalartAllmaras", "kOmegaSSTLM"]
+DES_MODELS = [
+    "kOmegaSSTDES",
+    "kOmegaSSTDDES",
+    "kOmegaSSTIDDES",
+    "SpalartAllmarasDES",
+    "SpalartAllmarasDDES",
+    "SpalartAllmarasIDDES",
+]
+LES_MODELS = ["kEqn", "Smagorinsky", "WALE"]
 
 
 class TaskPanelCfdPhysicsSelection:
@@ -42,7 +49,9 @@ class TaskPanelCfdPhysicsSelection:
         FreeCADGui.Selection.clearSelection()
         self.sel_server = None
         self.obj = obj
-        self.form = FreeCADGui.PySideUic.loadUi(os.path.join(CfdTools.getModulePath(), 'Gui', "TaskPanelPhysics.ui"))
+        self.form = FreeCADGui.PySideUic.loadUi(
+            os.path.join(CfdTools.getModulePath(), "Gui", "TaskPanelPhysics.ui")
+        )
 
         self.form.radioButtonSteady.toggled.connect(self.updateUI)
         self.form.radioButtonTransient.toggled.connect(self.updateUI)
@@ -61,35 +70,35 @@ class TaskPanelCfdPhysicsSelection:
     def load(self):
 
         # Time
-        if self.obj.Time == 'Steady':
+        if self.obj.Time == "Steady":
             self.form.radioButtonSteady.toggle()
-        elif self.obj.Time == 'Transient':
+        elif self.obj.Time == "Transient":
             self.form.radioButtonTransient.toggle()
 
         # Phase
-        if self.obj.Phase == 'Single':
+        if self.obj.Phase == "Single":
             self.form.radioButtonSinglePhase.toggle()
-        elif self.obj.Phase == 'FreeSurface':
+        elif self.obj.Phase == "FreeSurface":
             self.form.radioButtonFreeSurface.toggle()
 
         # Flow
-        self.form.checkBoxIsothermal.setChecked(self.obj.Flow == 'Isothermal')
-        self.form.checkBoxHighMach.setChecked(self.obj.Flow == 'HighMachCompressible')
+        self.form.checkBoxIsothermal.setChecked(self.obj.Flow == "Isothermal")
+        self.form.checkBoxHighMach.setChecked(self.obj.Flow == "HighMachCompressible")
 
         # Turbulence
-        if self.obj.Turbulence == 'Inviscid':
+        if self.obj.Turbulence == "Inviscid":
             self.form.viscousCheckBox.setChecked(False)
             self.form.radioButtonLaminar.toggle()
-        if self.obj.Turbulence == 'Laminar':
+        if self.obj.Turbulence == "Laminar":
             self.form.viscousCheckBox.setChecked(True)
             self.form.radioButtonLaminar.toggle()
-        elif self.obj.Turbulence == 'RANS':
+        elif self.obj.Turbulence == "RANS":
             self.form.viscousCheckBox.setChecked(True)
             self.form.radioButtonRANS.toggle()
-        elif self.obj.Turbulence == 'DES':
+        elif self.obj.Turbulence == "DES":
             self.form.viscousCheckBox.setChecked(True)
             self.form.radioButtonDES.toggle()
-        elif self.obj.Turbulence == 'LES':
+        elif self.obj.Turbulence == "LES":
             self.form.viscousCheckBox.setChecked(True)
             self.form.radioButtonLES.toggle()
 
@@ -134,14 +143,22 @@ class TaskPanelCfdPhysicsSelection:
 
         # Gravity
         self.form.gravityFrame.setEnabled(
-            self.form.radioButtonFreeSurface.isChecked() or
-            (not self.form.checkBoxIsothermal.isChecked() and not self.form.checkBoxHighMach.isChecked()))
+            self.form.radioButtonFreeSurface.isChecked()
+            or (
+                not self.form.checkBoxIsothermal.isChecked()
+                and not self.form.checkBoxHighMach.isChecked()
+            )
+        )
 
         # SRF model
-        srf_capable = (self.form.radioButtonSteady.isChecked() and self.form.checkBoxIsothermal.isChecked())
-        srf_should_be_unchecked = ((not self.form.checkBoxIsothermal.isChecked()) 
-                                   or self.form.radioButtonTransient.isChecked()
-                                   or self.form.radioButtonFreeSurface.isChecked())
+        srf_capable = (
+            self.form.radioButtonSteady.isChecked() and self.form.checkBoxIsothermal.isChecked()
+        )
+        srf_should_be_unchecked = (
+            (not self.form.checkBoxIsothermal.isChecked())
+            or self.form.radioButtonTransient.isChecked()
+            or self.form.radioButtonFreeSurface.isChecked()
+        )
         self.form.srfCheckBox.setEnabled(srf_capable)
         if srf_should_be_unchecked:
             self.form.srfCheckBox.setChecked(False)
@@ -159,7 +176,7 @@ class TaskPanelCfdPhysicsSelection:
         if self.form.checkBoxIsothermal.isChecked():
             self.form.checkBoxHighMach.setChecked(False)
 
-        # Viscous 
+        # Viscous
         if self.form.viscousCheckBox.isChecked():
             self.form.turbulenceFrame.setVisible(True)
             # RANS
@@ -169,7 +186,7 @@ class TaskPanelCfdPhysicsSelection:
                 ti = CfdTools.indexOrDefault(RANS_MODELS, self.obj.TurbulenceModel, 0)
                 self.form.turbulenceComboBox.setCurrentIndex(ti)
                 self.form.turbulenceModelFrame.setVisible(True)
-            #DES
+            # DES
             elif self.form.radioButtonDES.isChecked():
                 self.form.turbulenceComboBox.clear()
                 self.form.turbulenceComboBox.addItems(DES_MODELS)
@@ -195,54 +212,58 @@ class TaskPanelCfdPhysicsSelection:
         doc.resetEdit()
 
         if self.form.radioButtonSteady.isChecked():
-            storeIfChanged(self.obj, 'Time', 'Steady')
+            storeIfChanged(self.obj, "Time", "Steady")
         elif self.form.radioButtonTransient.isChecked():
-            storeIfChanged(self.obj, 'Time', 'Transient')
+            storeIfChanged(self.obj, "Time", "Transient")
 
         if self.form.radioButtonSinglePhase.isChecked():
-            storeIfChanged(self.obj, 'Phase', 'Single')
+            storeIfChanged(self.obj, "Phase", "Single")
         elif self.form.radioButtonFreeSurface.isChecked():
-            storeIfChanged(self.obj, 'Phase', 'FreeSurface')
+            storeIfChanged(self.obj, "Phase", "FreeSurface")
 
         if self.form.checkBoxIsothermal.isChecked():
-            storeIfChanged(self.obj, 'Flow', 'Isothermal')
+            storeIfChanged(self.obj, "Flow", "Isothermal")
         elif not self.form.checkBoxIsothermal.isChecked():
             if self.form.checkBoxHighMach.isChecked():
-                storeIfChanged(self.obj, 'Flow', 'HighMachCompressible')
+                storeIfChanged(self.obj, "Flow", "HighMachCompressible")
             else:
-                storeIfChanged(self.obj, 'Flow', 'NonIsothermal')
+                storeIfChanged(self.obj, "Flow", "NonIsothermal")
 
         if self.form.viscousCheckBox.isChecked():
             if self.form.radioButtonLaminar.isChecked():
-                storeIfChanged(self.obj, 'Turbulence', 'Laminar')
+                storeIfChanged(self.obj, "Turbulence", "Laminar")
             else:
                 if self.form.radioButtonRANS.isChecked():
-                    storeIfChanged(self.obj, 'Turbulence', 'RANS')
+                    storeIfChanged(self.obj, "Turbulence", "RANS")
                 elif self.form.radioButtonDES.isChecked():
-                    storeIfChanged(self.obj, 'Turbulence', 'DES')
+                    storeIfChanged(self.obj, "Turbulence", "DES")
                 elif self.form.radioButtonLES.isChecked():
-                    storeIfChanged(self.obj, 'Turbulence', 'LES')
-                storeIfChanged(self.obj, 'TurbulenceModel', self.form.turbulenceComboBox.currentText())
+                    storeIfChanged(self.obj, "Turbulence", "LES")
+                storeIfChanged(
+                    self.obj, "TurbulenceModel", self.form.turbulenceComboBox.currentText()
+                )
         else:
-            storeIfChanged(self.obj, 'Turbulence', 'Inviscid')
+            storeIfChanged(self.obj, "Turbulence", "Inviscid")
 
-        storeIfChanged(self.obj, 'gx', getQuantity(self.form.gx))
-        storeIfChanged(self.obj, 'gy', getQuantity(self.form.gy))
-        storeIfChanged(self.obj, 'gz', getQuantity(self.form.gz))
+        storeIfChanged(self.obj, "gx", getQuantity(self.form.gx))
+        storeIfChanged(self.obj, "gy", getQuantity(self.form.gy))
+        storeIfChanged(self.obj, "gz", getQuantity(self.form.gz))
 
         if self.form.srfCheckBox.isChecked():
-            storeIfChanged(self.obj, 'SRFModelEnabled', self.form.srfCheckBox.isChecked())
-            storeIfChanged(self.obj, 'SRFModelRPM', self.form.inputSRFRPM.text())
+            storeIfChanged(self.obj, "SRFModelEnabled", self.form.srfCheckBox.isChecked())
+            storeIfChanged(self.obj, "SRFModelRPM", self.form.inputSRFRPM.text())
             centre_of_rotation = FreeCAD.Vector(
                 self.form.inputSRFCoRx.property("quantity").Value,
                 self.form.inputSRFCoRy.property("quantity").Value,
-                self.form.inputSRFCoRz.property("quantity").Value)
-            storeIfChanged(self.obj, 'SRFModelCoR', centre_of_rotation)
+                self.form.inputSRFCoRz.property("quantity").Value,
+            )
+            storeIfChanged(self.obj, "SRFModelCoR", centre_of_rotation)
             model_axis = FreeCAD.Vector(
                 self.form.inputSRFAxisx.property("quantity").Value,
                 self.form.inputSRFAxisy.property("quantity").Value,
-                self.form.inputSRFAxisz.property("quantity").Value)
-            storeIfChanged(self.obj, 'SRFModelAxis', model_axis)
+                self.form.inputSRFAxisz.property("quantity").Value,
+            )
+            storeIfChanged(self.obj, "SRFModelAxis", model_axis)
 
     def reject(self):
         doc = FreeCADGui.getDocument(self.obj.Document)

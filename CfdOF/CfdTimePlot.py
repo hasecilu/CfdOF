@@ -30,25 +30,28 @@ from PySide.QtCore import QT_TRANSLATE_NOOP
 
 # If for any reason PyQt5 has been imported, we need to unload it temporarily
 # to prevent matplotlib using the PyQt backend instead of PySide
-if 'PyQt5.QtCore' in sys.modules:
-    del sys.modules['PyQt5.QtCore']
+if "PyQt5.QtCore" in sys.modules:
+    del sys.modules["PyQt5.QtCore"]
     reload_PyQt5 = True
 else:
     reload_PyQt5 = False
 
-if int(FreeCAD.Version()[0]) == 0 and int(FreeCAD.Version()[1].split('.')[0]) < 20:
+if int(FreeCAD.Version()[0]) == 0 and int(FreeCAD.Version()[1].split(".")[0]) < 20:
     from CfdOF.compat import Plot  # Plot workbench
 else:
     try:
         from FreeCAD.Plot import Plot  # Inbuilt plot module
     except ImportError:
-        from CfdOF.compat import Plot  # Fallback to compat (should be unnecessary once 0.20 is stable)
+        from CfdOF.compat import (
+            Plot,
+        )  # Fallback to compat (should be unnecessary once 0.20 is stable)
 
 if reload_PyQt5:
     import PyQt5.QtCore
 
 from FreeCAD import Units
 from CfdOF import CfdTools
+
 
 class TimePlot:
     def __init__(self, title, y_label, is_log):
@@ -83,15 +86,17 @@ class TimePlot:
     def reInitialise(self, analysis_obj):
         phys_model = CfdTools.getPhysicsModel(analysis_obj)
         solver_obj = CfdTools.getSolver(analysis_obj)
-        self.transient = (phys_model.Time == 'Transient')
+        self.transient = phys_model.Time == "Transient"
         self.values = {}
-        self.ax_lim = 100*solver_obj.TimeStep.getValueAs(Units.TimeSpan).Value if self.transient else 100
+        self.ax_lim = (
+            100 * solver_obj.TimeStep.getValueAs(Units.TimeSpan).Value if self.transient else 100
+        )
 
     def refresh(self):
         if self.updated:
             self.updated = False
             if self.fig is None:
-                self.fig = Plot.figure(FreeCAD.ActiveDocument.Name + ' : ' + self.title)
+                self.fig = Plot.figure(FreeCAD.ActiveDocument.Name + " : " + self.title)
                 self.fig.destroyed.connect(self.figureClosed)
             ax = self.fig.axes
             ax.cla()
@@ -103,19 +108,21 @@ class TimePlot:
             last_values_min = 1e-2
             for k in self.values:
                 if self.values[k]:
-                    ax.plot(self.times[0:len(self.values[k])], self.values[k], label=k, linewidth=1)
-                    last_values_min = min([last_values_min]+self.values[k][1:-1])
+                    ax.plot(
+                        self.times[0 : len(self.values[k])], self.values[k], label=k, linewidth=1
+                    )
+                    last_values_min = min([last_values_min] + self.values[k][1:-1])
 
             ax.grid()
             if self.is_logarithmic:
-                ax.set_yscale('log')
+                ax.set_yscale("log")
                 # Decrease in increments of 10
-                ax.set_ylim([10**(math.floor(math.log10(last_values_min))), 1])
+                ax.set_ylim([10 ** (math.floor(math.log10(last_values_min))), 1])
 
             if self.just_initialised and len(self.times):
                 # Re-initialise based on the actual first time step taken, which may differ from the time step
                 # specified by the user
-                self.ax_lim = 100*self.times[0] if self.transient else 100
+                self.ax_lim = 100 * self.times[0] if self.transient else 100
                 self.just_initialised = False
 
             while float(self.times[-1]) > self.ax_lim:
@@ -124,5 +131,5 @@ class TimePlot:
             ax.set_xlim([0, self.ax_lim])
 
             if len(self.times):
-                ax.legend(loc='lower left')
+                ax.legend(loc="lower left")
                 self.fig.canvas.draw()

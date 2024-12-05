@@ -27,6 +27,7 @@ import os
 import os.path
 import FreeCAD
 from FreeCAD import Units
+
 if FreeCAD.GuiUp:
     import FreeCADGui
     from PySide import QtCore
@@ -35,6 +36,7 @@ from CfdOF.CfdTools import addObjectProperty
 from CfdOF.Solve import TaskPanelCfdInitialiseInternalFlowField
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
+
 
 def makeCfdInitialFlowField(name="InitialiseFields"):
     obj = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", name)
@@ -45,16 +47,19 @@ def makeCfdInitialFlowField(name="InitialiseFields"):
 
 
 class CommandCfdInitialiseInternalFlowField:
-    """ Field initialisation command """
+    """Field initialisation command"""
 
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "initialise.svg")
-        return {'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_InitialiseInternal", "Initialise"),
-                'Accel': "",
-                'ToolTip': QT_TRANSLATE_NOOP(
-                    "CfdOF_InitialiseInternal",
-                    "Initialise internal flow variables based on the selected physics model")}
+        return {
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_InitialiseInternal", "Initialise"),
+            "Accel": "",
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_InitialiseInternal",
+                "Initialise internal flow variables based on the selected physics model",
+            ),
+        }
 
     def IsActive(self):
         return CfdTools.getActiveAnalysis() is not None
@@ -73,61 +78,152 @@ class CommandCfdInitialiseInternalFlowField:
             FreeCADGui.doCommand("from CfdOF import CfdTools")
             FreeCADGui.doCommand("from CfdOF.Solve import CfdInitialiseFlowField")
             FreeCADGui.doCommand(
-                "CfdTools.getActiveAnalysis().addObject(CfdInitialiseFlowField.makeCfdInitialFlowField())")
+                "CfdTools.getActiveAnalysis().addObject(CfdInitialiseFlowField.makeCfdInitialFlowField())"
+            )
             FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)
 
 
 class CfdInitialVariables:
-    """ The field initialisation object """
+    """The field initialisation object"""
+
     def __init__(self, obj):
         obj.Proxy = self
         self.Type = "InitialVariables"
         self.initProperties(obj)
 
     def initProperties(self, obj):
-        addObjectProperty(obj, 'PotentialFlow', True, "App::PropertyBool", "Flow",
-                          "Initialise velocity with potential flow solution")
-        addObjectProperty(obj, 'PotentialFlowP', False, "App::PropertyBool", "Flow",
-                          "Initialise pressure with potential flow solution")
-        addObjectProperty(obj, 'UseInletUValues', False, "App::PropertyBool", "Flow",
-                          "Initialise with flow values from inlet")
-        addObjectProperty(obj, 'UseOutletPValue', True, "App::PropertyBool", "Flow",
-                          "Initialise with flow values from outlet")
-        addObjectProperty(obj, 'Ux', '0 m/s', "App::PropertySpeed", "Flow", "Velocity (x component)")
-        addObjectProperty(obj, 'Uy', '0 m/s', "App::PropertySpeed", "Flow", "Velocity (y component)")
-        addObjectProperty(obj, 'Uz', '0 m/s', "App::PropertySpeed", "Flow", "Velocity (z component)")
-        addObjectProperty(obj, 'Pressure', '100 kPa', "App::PropertyPressure", "Flow", "Static pressure")
-        addObjectProperty(obj, 'UseInletTemperatureValue', False, "App::PropertyBool", "Thermal",
-                          "Initialise with temperature value from inlet")
-        addObjectProperty(obj, 'Temperature', '293 K', "App::PropertyQuantity", "Thermal", "Temperature")
-        addObjectProperty(obj, 'UseInletTurbulenceValues', False, "App::PropertyBool", "Turbulence",
-                          "Initialise turbulence with values from inlet")
-        addObjectProperty(obj, 'k', '0.01 m^2/s^2', "App::PropertyQuantity", "Turbulence", "Turbulent kinetic energy")
-        addObjectProperty(obj, 'omega', '1 1/s', "App::PropertyQuantity", "Turbulance", 
-                          "Specific turbulent dissipation rate")
-        addObjectProperty(obj, 'epsilon', '50 m^2/s^3', "App::PropertyQuantity", "Turbulence",
-                          "Turbulent dissipation rate")
-        addObjectProperty(obj, 'nuTilda', '55 m^2/s^1', "App::PropertyQuantity", "Turbulence",
-                          "Modified turbulent viscosity")
-        addObjectProperty(obj, 'gammaInt', '1', "App::PropertyQuantity", "Turbulence",
-                          "Turbulent intermittency")
-        addObjectProperty(obj, 'ReThetat', '1', "App::PropertyQuantity", "Turbulence",
-                          "Transition Momentum Thickness Reynolds Number")
-        addObjectProperty(obj, 'nut', '50 m^2/s^1', "App::PropertyQuantity", "Turbulence",
-                          "Turbulent viscosity")
+        addObjectProperty(
+            obj,
+            "PotentialFlow",
+            True,
+            "App::PropertyBool",
+            "Flow",
+            "Initialise velocity with potential flow solution",
+        )
+        addObjectProperty(
+            obj,
+            "PotentialFlowP",
+            False,
+            "App::PropertyBool",
+            "Flow",
+            "Initialise pressure with potential flow solution",
+        )
+        addObjectProperty(
+            obj,
+            "UseInletUValues",
+            False,
+            "App::PropertyBool",
+            "Flow",
+            "Initialise with flow values from inlet",
+        )
+        addObjectProperty(
+            obj,
+            "UseOutletPValue",
+            True,
+            "App::PropertyBool",
+            "Flow",
+            "Initialise with flow values from outlet",
+        )
+        addObjectProperty(
+            obj, "Ux", "0 m/s", "App::PropertySpeed", "Flow", "Velocity (x component)"
+        )
+        addObjectProperty(
+            obj, "Uy", "0 m/s", "App::PropertySpeed", "Flow", "Velocity (y component)"
+        )
+        addObjectProperty(
+            obj, "Uz", "0 m/s", "App::PropertySpeed", "Flow", "Velocity (z component)"
+        )
+        addObjectProperty(
+            obj, "Pressure", "100 kPa", "App::PropertyPressure", "Flow", "Static pressure"
+        )
+        addObjectProperty(
+            obj,
+            "UseInletTemperatureValue",
+            False,
+            "App::PropertyBool",
+            "Thermal",
+            "Initialise with temperature value from inlet",
+        )
+        addObjectProperty(
+            obj, "Temperature", "293 K", "App::PropertyQuantity", "Thermal", "Temperature"
+        )
+        addObjectProperty(
+            obj,
+            "UseInletTurbulenceValues",
+            False,
+            "App::PropertyBool",
+            "Turbulence",
+            "Initialise turbulence with values from inlet",
+        )
+        addObjectProperty(
+            obj,
+            "k",
+            "0.01 m^2/s^2",
+            "App::PropertyQuantity",
+            "Turbulence",
+            "Turbulent kinetic energy",
+        )
+        addObjectProperty(
+            obj,
+            "omega",
+            "1 1/s",
+            "App::PropertyQuantity",
+            "Turbulance",
+            "Specific turbulent dissipation rate",
+        )
+        addObjectProperty(
+            obj,
+            "epsilon",
+            "50 m^2/s^3",
+            "App::PropertyQuantity",
+            "Turbulence",
+            "Turbulent dissipation rate",
+        )
+        addObjectProperty(
+            obj,
+            "nuTilda",
+            "55 m^2/s^1",
+            "App::PropertyQuantity",
+            "Turbulence",
+            "Modified turbulent viscosity",
+        )
+        addObjectProperty(
+            obj, "gammaInt", "1", "App::PropertyQuantity", "Turbulence", "Turbulent intermittency"
+        )
+        addObjectProperty(
+            obj,
+            "ReThetat",
+            "1",
+            "App::PropertyQuantity",
+            "Turbulence",
+            "Transition Momentum Thickness Reynolds Number",
+        )
+        addObjectProperty(
+            obj, "nut", "50 m^2/s^1", "App::PropertyQuantity", "Turbulence", "Turbulent viscosity"
+        )
 
-        addObjectProperty(obj, 'VolumeFractions', {}, "App::PropertyMap", "Volume Fraction", "Volume fraction values")
-        addObjectProperty(obj, 'BoundaryU', None, "App::PropertyLinkGlobal", "", "U boundary")
-        addObjectProperty(obj, 'BoundaryP', None, "App::PropertyLinkGlobal", "", "P boundary")
-        addObjectProperty(obj, 'BoundaryT', None, "App::PropertyLinkGlobal", "", "T boundary")
-        addObjectProperty(obj, 'BoundaryTurb', None, "App::PropertyLinkGlobal", "", "Turbulence boundary")
+        addObjectProperty(
+            obj,
+            "VolumeFractions",
+            {},
+            "App::PropertyMap",
+            "Volume Fraction",
+            "Volume fraction values",
+        )
+        addObjectProperty(obj, "BoundaryU", None, "App::PropertyLinkGlobal", "", "U boundary")
+        addObjectProperty(obj, "BoundaryP", None, "App::PropertyLinkGlobal", "", "P boundary")
+        addObjectProperty(obj, "BoundaryT", None, "App::PropertyLinkGlobal", "", "T boundary")
+        addObjectProperty(
+            obj, "BoundaryTurb", None, "App::PropertyLinkGlobal", "", "Turbulence boundary"
+        )
 
     def onDocumentRestored(self, obj):
         self.initProperties(obj)
 
 
 class _CfdInitialVariables:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def onDocumentRestored(self, obj):
         CfdInitialVariables(obj)
 
@@ -149,7 +245,7 @@ class ViewProviderCfdInitialiseInternalFlowField:
     def updateData(self, obj, prop):
         analysis_obj = CfdTools.getParentAnalysisObject(obj)
         # Ignore Shape updates as these relate to linked patches
-        if prop != 'Shape':
+        if prop != "Shape":
             if analysis_obj and not analysis_obj.Proxy.loading:
                 analysis_obj.NeedsCaseRewrite = True
 
@@ -169,9 +265,13 @@ class ViewProviderCfdInitialiseInternalFlowField:
         material_objs = CfdTools.getMaterials(analysis_object)
 
         import importlib
+
         importlib.reload(TaskPanelCfdInitialiseInternalFlowField)
-        self.taskd = TaskPanelCfdInitialiseInternalFlowField.TaskPanelCfdInitialiseInternalFlowField(
-            self.Object, physics_model, boundaries, material_objs)
+        self.taskd = (
+            TaskPanelCfdInitialiseInternalFlowField.TaskPanelCfdInitialiseInternalFlowField(
+                self.Object, physics_model, boundaries, material_objs
+            )
+        )
         self.taskd.obj = vobj.Object
         FreeCADGui.Control.showDialog(self.taskd)
         return True
@@ -181,7 +281,7 @@ class ViewProviderCfdInitialiseInternalFlowField:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Task dialog already active\n')
+            FreeCAD.Console.PrintError("Task dialog already active\n")
             FreeCADGui.Control.showTaskView()
         return True
 
@@ -206,7 +306,8 @@ class ViewProviderCfdInitialiseInternalFlowField:
 
 
 class _ViewProviderCfdInitialseInternalFlowField:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def attach(self, vobj):
         new_proxy = ViewProviderCfdInitialiseInternalFlowField(vobj)
         new_proxy.attach(vobj)

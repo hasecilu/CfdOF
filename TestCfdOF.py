@@ -56,28 +56,28 @@ import shutil
 
 home_path = CfdTools.getModulePath()
 temp_dir = tempfile.gettempdir()
-test_file_dir = os.path.join(home_path, 'Data', 'TestFiles')
+test_file_dir = os.path.join(home_path, "Data", "TestFiles")
 
 
 def fccPrint(message):
-    FreeCAD.Console.PrintMessage('{} \n'.format(message))
+    FreeCAD.Console.PrintMessage("{} \n".format(message))
 
 
 class BlockTest(unittest.TestCase):
-    __doc_name = 'block'
-    __part_name = 'Box'
+    __doc_name = "block"
+    __part_name = "Box"
 
     def setUp(self):
-        """ Load document with part. """
-        print (test_file_dir)
-        part_file = os.path.join(test_file_dir, 'parts', self.__class__.__doc_name + '.fcstd')
+        """Load document with part."""
+        print(test_file_dir)
+        part_file = os.path.join(test_file_dir, "parts", self.__class__.__doc_name + ".fcstd")
         FreeCAD.open(part_file)
         FreeCAD.setActiveDocument(self.__class__.__doc_name)
         self.active_doc = FreeCAD.ActiveDocument
         self.active_doc.recompute()
 
     def createNewAnalysis(self):
-        self.analysis = CfdAnalysis.makeCfdAnalysis('CfdAnalysis')
+        self.analysis = CfdAnalysis.makeCfdAnalysis("CfdAnalysis")
         CfdTools.setActiveAnalysis(self.analysis)
         self.active_doc.recompute()
 
@@ -93,9 +93,9 @@ class BlockTest(unittest.TestCase):
         self.physics_object = CfdPhysicsSelection.makeCfdPhysicsSelection()
         self.analysis.addObject(self.physics_object)
         phys = self.physics_object
-        phys.Time = 'Steady'
-        phys.Flow = 'Isothermal'
-        phys.Turbulence = 'Laminar'
+        phys.Time = "Steady"
+        phys.Flow = "Isothermal"
+        phys.Turbulence = "Laminar"
         self.active_doc.recompute()
 
     def createNewInitialise(self):
@@ -107,12 +107,12 @@ class BlockTest(unittest.TestCase):
         self.active_doc.recompute()
 
     def createNewFluidProperty(self):
-        self.material_object = CfdFluidMaterial.makeCfdFluidMaterial('FluidProperties')
+        self.material_object = CfdFluidMaterial.makeCfdFluidMaterial("FluidProperties")
         self.analysis.addObject(self.material_object)
         mat = self.material_object.Material
-        mat['Name'] = 'None'
-        mat['Density'] = '1.20 kg/m^3'
-        mat['DynamicViscosity'] = '0.000018 kg/m/s'
+        mat["Name"] = "None"
+        mat["Density"] = "1.20 kg/m^3"
+        mat["DynamicViscosity"] = "0.000018 kg/m/s"
         self.active_doc.recompute()
 
     def createNewMesh(self, mesh_name):
@@ -128,73 +128,78 @@ class BlockTest(unittest.TestCase):
         obj.ElementDimension = "3D"
 
     def createInletBoundary(self):
-        self.inlet_boundary = CfdFluidBoundary.makeCfdFluidBoundary('inlet')
+        self.inlet_boundary = CfdFluidBoundary.makeCfdFluidBoundary("inlet")
         self.analysis.addObject(self.inlet_boundary)
         bc_set = self.inlet_boundary
-        bc_set.BoundaryType = 'inlet'
-        bc_set.BoundarySubType = 'uniformVelocityInlet'
+        bc_set.BoundaryType = "inlet"
+        bc_set.BoundarySubType = "uniformVelocityInlet"
         bc_set.Ux = 1
         bc_set.Uy = 0
         bc_set.Uz = 0
 
         # Test addSelection and rebuild_list_references
         doc = FreeCAD.getDocument(self.__class__.__doc_name)
-        obj = doc.getObject('inlet')
+        obj = doc.getObject("inlet")
         vobj = obj.ViewObject
         from CfdOF.Solve import TaskPanelCfdFluidBoundary
+
         physics_model = CfdTools.getPhysicsModel(self.analysis)
         material_objs = CfdTools.getMaterials(self.analysis)
-        taskd = TaskPanelCfdFluidBoundary.TaskPanelCfdFluidBoundary(obj, physics_model, material_objs)
+        taskd = TaskPanelCfdFluidBoundary.TaskPanelCfdFluidBoundary(
+            obj, physics_model, material_objs
+        )
         taskd.selecting_references = True
-        taskd.faceSelector.addSelection(doc.Name, self.__class__.__part_name, 'Face1')
+        taskd.faceSelector.addSelection(doc.Name, self.__class__.__part_name, "Face1")
         # Give scheduled recompute a chance to happen
         FreeCADGui.updateGui()
         taskd.accept()
 
     def createOutletBoundary(self):
-        self.outlet_boundary = CfdFluidBoundary.makeCfdFluidBoundary('outlet')
+        self.outlet_boundary = CfdFluidBoundary.makeCfdFluidBoundary("outlet")
         self.analysis.addObject(self.outlet_boundary)
         bc_set = self.outlet_boundary
-        bc_set.BoundaryType = 'outlet'
-        bc_set.BoundarySubType = 'staticPressureOutlet'
+        bc_set.BoundaryType = "outlet"
+        bc_set.BoundarySubType = "staticPressureOutlet"
         bc_set.Pressure = 0.0
         doc = FreeCAD.getDocument(self.__class__.__doc_name)
-        obj = doc.getObject('Box')
-        self.outlet_boundary.ShapeRefs = [(obj, ('Face4'))]
-        FreeCADGui.doCommand("FreeCAD.getDocument('"+self.__class__.__doc_name+"').recompute()")
+        obj = doc.getObject("Box")
+        self.outlet_boundary.ShapeRefs = [(obj, ("Face4"))]
+        FreeCADGui.doCommand("FreeCAD.getDocument('" + self.__class__.__doc_name + "').recompute()")
 
     def createWallBoundary(self):
-        self.wall_boundary = CfdFluidBoundary.makeCfdFluidBoundary('wall')
+        self.wall_boundary = CfdFluidBoundary.makeCfdFluidBoundary("wall")
         self.analysis.addObject(self.wall_boundary)
         bc_set = self.wall_boundary
-        bc_set.BoundaryType = 'wall'
-        bc_set.BoundarySubType = 'fixedWall'
+        bc_set.BoundaryType = "wall"
+        bc_set.BoundarySubType = "fixedWall"
         doc = FreeCAD.getDocument(self.__class__.__doc_name)
-        obj = doc.getObject('Box')
-        self.wall_boundary.ShapeRefs = [(obj, ('Face2', 'Face3'))]
-        FreeCADGui.doCommand("FreeCAD.getDocument('"+self.__class__.__doc_name+"').recompute()")
+        obj = doc.getObject("Box")
+        self.wall_boundary.ShapeRefs = [(obj, ("Face2", "Face3"))]
+        FreeCADGui.doCommand("FreeCAD.getDocument('" + self.__class__.__doc_name + "').recompute()")
 
     def createSlipBoundary(self):
-        self.slip_boundary = CfdFluidBoundary.makeCfdFluidBoundary('slip')
+        self.slip_boundary = CfdFluidBoundary.makeCfdFluidBoundary("slip")
         self.analysis.addObject(self.slip_boundary)
         bc_set = self.slip_boundary
-        bc_set.BoundaryType = 'wall'
-        bc_set.BoundarySubType = 'slipWall'
+        bc_set.BoundaryType = "wall"
+        bc_set.BoundarySubType = "slipWall"
         doc = FreeCAD.getDocument(self.__class__.__doc_name)
-        obj = doc.getObject('Box')
-        self.slip_boundary.ShapeRefs = [(obj, ('Face5', 'Face6'))]
-        FreeCADGui.doCommand("FreeCAD.getDocument('"+self.__class__.__doc_name+"').recompute()")
+        obj = doc.getObject("Box")
+        self.slip_boundary.ShapeRefs = [(obj, ("Face5", "Face6"))]
+        FreeCADGui.doCommand("FreeCAD.getDocument('" + self.__class__.__doc_name + "').recompute()")
 
     def writeCaseFiles(self):
-        print ('Write mesh files ...')
+        print("Write mesh files ...")
         from CfdOF.Mesh import TaskPanelCfdMesh
+
         taskd = TaskPanelCfdMesh.TaskPanelCfdMesh(self.mesh_object)
         taskd.obj = self.mesh_object.ViewObject
         taskd.writeMesh()
         taskd.closed()
 
-        print ('Write case files ...')
+        print("Write case files ...")
         from CfdOF.Solve import TaskPanelCfdSolverControl
+
         solver_runner = CfdRunnableFoam.CfdRunnableFoam(self.analysis, self.solver_object)
         taskd = TaskPanelCfdSolverControl.TaskPanelCfdSolverControl(solver_runner)
         taskd.obj = self.solver_object.ViewObject
@@ -208,71 +213,75 @@ class BlockTest(unittest.TestCase):
         original_append_setting = FreeCAD.ParamGet(prefs).GetBool("AppendDocNameToOutputPath", 0)
         FreeCAD.ParamGet(prefs).SetBool("AppendDocNameToOutputPath", 0)
 
-        fccPrint('--------------- Start of CFD tests ---------------')
-        fccPrint('Checking CFD {} analysis ...'.format(self.__class__.__doc_name))
+        fccPrint("--------------- Start of CFD tests ---------------")
+        fccPrint("Checking CFD {} analysis ...".format(self.__class__.__doc_name))
         self.createNewAnalysis()
         self.assertTrue(self.analysis, "CfdTest of analysis failed")
 
-        fccPrint('Checking CFD {} physics object ...'.format(self.__class__.__doc_name))
+        fccPrint("Checking CFD {} physics object ...".format(self.__class__.__doc_name))
         self.createNewPhysics()
         self.assertTrue(self.physics_object, "CfdTest of physics object failed")
         self.analysis.addObject(self.physics_object)
 
-        fccPrint('Checking CFD {} initialise ...'.format(self.__class__.__doc_name))
+        fccPrint("Checking CFD {} initialise ...".format(self.__class__.__doc_name))
         self.createNewInitialise()
         self.assertTrue(self.initialise_object, "CfdTest of initialise failed")
         self.analysis.addObject(self.initialise_object)
 
-        fccPrint('Checking CFD {} fluid property ...'.format(self.__class__.__doc_name))
+        fccPrint("Checking CFD {} fluid property ...".format(self.__class__.__doc_name))
         self.createNewFluidProperty()
         self.assertTrue(self.material_object, "CfdTest of fluid property failed")
         self.analysis.addObject(self.material_object)
 
-        fccPrint('Checking Cfd {} velocity inlet boundary ...'.format(self.__class__.__doc_name))
+        fccPrint("Checking Cfd {} velocity inlet boundary ...".format(self.__class__.__doc_name))
         self.createInletBoundary()
         self.assertTrue(self.inlet_boundary, "CfdTest of inlet boundary failed")
         self.analysis.addObject(self.inlet_boundary)
 
-        fccPrint('Checking Cfd {} velocity outlet boundary ...'.format(self.__class__.__doc_name))
+        fccPrint("Checking Cfd {} velocity outlet boundary ...".format(self.__class__.__doc_name))
         self.createOutletBoundary()
         self.assertTrue(self.outlet_boundary, "CfdTest of outlet boundary failed")
         self.analysis.addObject(self.outlet_boundary)
 
-        fccPrint('Checking Cfd {} wall boundary ...'.format(self.__class__.__doc_name))
+        fccPrint("Checking Cfd {} wall boundary ...".format(self.__class__.__doc_name))
         self.createWallBoundary()
         self.assertTrue(self.wall_boundary, "CfdTest of wall boundary failed")
         self.analysis.addObject(self.wall_boundary)
 
-        fccPrint('Checking Cfd {} slip boundary ...'.format(self.__class__.__doc_name))
+        fccPrint("Checking Cfd {} slip boundary ...".format(self.__class__.__doc_name))
         self.createSlipBoundary()
         self.assertTrue(self.slip_boundary, "CfdTest of slip boundary failed")
         self.analysis.addObject(self.slip_boundary)
 
-        fccPrint('Checking CFD {} mesh ...'.format(self.__class__.__doc_name))
-        self.createNewMesh('mesh')
+        fccPrint("Checking CFD {} mesh ...".format(self.__class__.__doc_name))
+        self.createNewMesh("mesh")
         self.assertTrue(self.mesh_object, "CfdTest of mesh failed")
         self.analysis.addObject(self.mesh_object)
 
-        fccPrint('Checking CFD {} solver ...'.format(self.__class__.__doc_name))
+        fccPrint("Checking CFD {} solver ...".format(self.__class__.__doc_name))
         self.createNewSolver()
         self.assertTrue(self.solver_object, self.__class__.__doc_name + " of solver failed")
         self.analysis.addObject(self.solver_object)
 
-        fccPrint('Writing {} case files ...'.format(self.__class__.__doc_name))
+        fccPrint("Writing {} case files ...".format(self.__class__.__doc_name))
         self.analysis.OutputPath = temp_dir
         self.solver_object.InputCaseName = "case" + self.__class__.__doc_name
         self.mesh_object.CaseName = "meshCase" + self.__class__.__doc_name
         self.writeCaseFiles()
 
         mesh_ref_dir = os.path.join(test_file_dir, "cases", self.__class__.__doc_name, "meshCase")
-        mesh_case_dir = os.path.join(CfdTools.getOutputPath(self.analysis), self.mesh_object.CaseName)
+        mesh_case_dir = os.path.join(
+            CfdTools.getOutputPath(self.analysis), self.mesh_object.CaseName
+        )
         ref_dir = os.path.join(test_file_dir, "cases", self.__class__.__doc_name, "case")
-        case_dir = os.path.join(CfdTools.getOutputPath(self.analysis), self.solver_object.InputCaseName)
+        case_dir = os.path.join(
+            CfdTools.getOutputPath(self.analysis), self.solver_object.InputCaseName
+        )
 
         comparePaths(mesh_ref_dir, mesh_case_dir, self)
         comparePaths(ref_dir, case_dir, self)
 
-        fccPrint('--------------- End of CFD tests ---------------')
+        fccPrint("--------------- End of CFD tests ---------------")
 
         FreeCAD.ParamGet(prefs).SetBool("AppendDocNameToOutputPath", original_append_setting)
 
@@ -281,7 +290,7 @@ class BlockTest(unittest.TestCase):
 
 
 class MacroTest:
-    """ Base class for macro-based regression tests below """
+    """Base class for macro-based regression tests below"""
 
     def __init__(self, var):
         self.child_instance = None
@@ -299,15 +308,15 @@ class MacroTest:
         # files are stored
         prefs = CfdTools.getPreferencesLocation()
         original_append_setting = FreeCAD.ParamGet(prefs).GetBool("AppendDocNameToOutputPath", 0)
-        FreeCAD.ParamGet(prefs).SetBool("AppendDocNameToOutputPath", 0);
+        FreeCAD.ParamGet(prefs).SetBool("AppendDocNameToOutputPath", 0)
 
-        fccPrint('--------------- Start of CFD tests ---------------')
+        fccPrint("--------------- Start of CFD tests ---------------")
         for m in macro_names:
             macro_name = os.path.join(home_path, "Demos", dir_name, m)
-            fccPrint('Running {} macro {} ...'.format(dir_name, macro_name))
+            fccPrint("Running {} macro {} ...".format(dir_name, macro_name))
             CfdTools.executeMacro(macro_name)
 
-        fccPrint('Writing {} case files ...'.format(dir_name))
+        fccPrint("Writing {} case files ...".format(dir_name))
         analysis = CfdTools.getActiveAnalysis()
         analysis.OutputPath = temp_dir
         CfdTools.getSolver(analysis).InputCaseName = "case" + dir_name
@@ -323,7 +332,7 @@ class MacroTest:
         case_dir = self.writer.case_folder
         comparePaths(ref_dir, case_dir, self.child_instance)
 
-        fccPrint('--------------- End of CFD tests ---------------')
+        fccPrint("--------------- End of CFD tests ---------------")
 
         FreeCAD.ParamGet(prefs).SetBool("AppendDocNameToOutputPath", original_append_setting)
 
@@ -332,8 +341,8 @@ class MacroTest:
 
 
 class ElbowTest(unittest.TestCase, MacroTest):
-    __dir_name = 'Elbow'
-    __macros = ['elbow.FCMacro']
+    __dir_name = "Elbow"
+    __macros = ["elbow.FCMacro"]
 
     def __init__(self, var):
         super().__init__(var)
@@ -347,8 +356,8 @@ class ElbowTest(unittest.TestCase, MacroTest):
 
 
 class DuctTest(unittest.TestCase, MacroTest):
-    __dir_name = 'Duct'
-    __macros = ['01-geom.FCMacro', '02-mesh.FCMacro', '03-porous.FCMacro', '04-screen.FCMacro']
+    __dir_name = "Duct"
+    __macros = ["01-geom.FCMacro", "02-mesh.FCMacro", "03-porous.FCMacro", "04-screen.FCMacro"]
 
     def __init__(self, var):
         super().__init__(var)
@@ -362,8 +371,8 @@ class DuctTest(unittest.TestCase, MacroTest):
 
 
 class ViscousTubeBundleTest(unittest.TestCase, MacroTest):
-    __dir_name = 'ViscousTubeBundle'
-    __macros = ['viscousTubeBundle.FCMacro']
+    __dir_name = "ViscousTubeBundle"
+    __macros = ["viscousTubeBundle.FCMacro"]
 
     def __init__(self, var):
         super().__init__(var)
@@ -377,8 +386,8 @@ class ViscousTubeBundleTest(unittest.TestCase, MacroTest):
 
 
 class UAVTest(unittest.TestCase, MacroTest):
-    __dir_name = 'UAV'
-    __macros = ['01-partDesign.FCMacro', '02-firstAnalysis.FCMacro', '03-refineMesh.FCMacro']
+    __dir_name = "UAV"
+    __macros = ["01-partDesign.FCMacro", "02-firstAnalysis.FCMacro", "03-refineMesh.FCMacro"]
 
     def __init__(self, var):
         super().__init__(var)
@@ -392,8 +401,13 @@ class UAVTest(unittest.TestCase, MacroTest):
 
 
 class ProjectileTest(unittest.TestCase, MacroTest):
-    __dir_name = 'Projectile'
-    __macros = ['01-geometry.FCMacro', '02-mesh.FCMacro', '03-boundaries.FCMacro', '04-forceCoeffs.FCMacro']
+    __dir_name = "Projectile"
+    __macros = [
+        "01-geometry.FCMacro",
+        "02-mesh.FCMacro",
+        "03-boundaries.FCMacro",
+        "04-forceCoeffs.FCMacro",
+    ]
 
     def __init__(self, var):
         super().__init__(var)
@@ -407,8 +421,8 @@ class ProjectileTest(unittest.TestCase, MacroTest):
 
 
 class LESStepTest(unittest.TestCase, MacroTest):
-    __dir_name = 'LESStep'
-    __macros = ['backwardStep.FCMacro']
+    __dir_name = "LESStep"
+    __macros = ["backwardStep.FCMacro"]
 
     def __init__(self, var):
         super().__init__(var)
@@ -422,8 +436,13 @@ class LESStepTest(unittest.TestCase, MacroTest):
 
 
 class DamBreak3DTest(unittest.TestCase, MacroTest):
-    __dir_name = 'DamBreak3D'
-    __macros = ['01-geom.FCMacro', '02-analysis.FCMacro', '03-probes.FCMacro','04-adaptiveMesh.FCMacro']
+    __dir_name = "DamBreak3D"
+    __macros = [
+        "01-geom.FCMacro",
+        "02-analysis.FCMacro",
+        "03-probes.FCMacro",
+        "04-adaptiveMesh.FCMacro",
+    ]
 
     def __init__(self, var):
         super().__init__(var)
@@ -437,21 +456,36 @@ class DamBreak3DTest(unittest.TestCase, MacroTest):
 
 
 def compareInpFiles(file_name1, file_name2):
-    file1 = open(file_name1, 'r')
+    file1 = open(file_name1, "r")
     f1 = file1.readlines()
     file1.close()
-    lf1 = [l for l in f1 if not l.startswith("FOAMDIR=") and not l.startswith("GMSH_EXE=")
-           and not l.startswith("set FOAMDIR") and not l.startswith("call %FOAMDIR%") and not l.startswith("$GMSH_EXE")]
+    lf1 = [
+        l
+        for l in f1
+        if not l.startswith("FOAMDIR=")
+        and not l.startswith("GMSH_EXE=")
+        and not l.startswith("set FOAMDIR")
+        and not l.startswith("call %FOAMDIR%")
+        and not l.startswith("$GMSH_EXE")
+    ]
     lf1 = forceUnixLineEnds(lf1)
-    file2 = open(file_name2, 'r')
+    file2 = open(file_name2, "r")
     f2 = file2.readlines()
     file2.close()
-    lf2 = [l for l in f2 if not l.startswith("FOAMDIR=") and not l.startswith("GMSH_EXE=")
-           and not l.startswith("set FOAMDIR") and not l.startswith("call %FOAMDIR%") and not l.startswith("$GMSH_EXE")]
+    lf2 = [
+        l
+        for l in f2
+        if not l.startswith("FOAMDIR=")
+        and not l.startswith("GMSH_EXE=")
+        and not l.startswith("set FOAMDIR")
+        and not l.startswith("call %FOAMDIR%")
+        and not l.startswith("$GMSH_EXE")
+    ]
     lf2 = forceUnixLineEnds(lf2)
     import difflib
+
     diff = difflib.unified_diff(lf1, lf2, n=0)
-    result = ''
+    result = ""
     for l in diff:
         result += l
     if result:
@@ -463,33 +497,33 @@ def forceUnixLineEnds(line_list):
     new_line_list = []
     for l in line_list:
         if l.endswith("\r\n"):
-            l = l[:-2] + '\n'
+            l = l[:-2] + "\n"
         new_line_list.append(l)
     return new_line_list
 
 
 def comparePaths(ref_dir, case_dir, unit_test):
-    """ Compares every file in ref_dir to corresponding one in case_dir """
+    """Compares every file in ref_dir to corresponding one in case_dir"""
     fccPrint("Comparing files in {} to those in {}".format(case_dir, ref_dir))
     unit_test.assertTrue(os.path.exists(ref_dir))
     for path, directories, files in os.walk(ref_dir):
         for file in files:
             ref_file = os.path.join(path, file)
             case_file = os.path.join(case_dir, os.path.relpath(path, ref_dir), file)
-            fccPrint('Comparing {} to {}'.format(ref_file, case_file))
+            fccPrint("Comparing {} to {}".format(ref_file, case_file))
             ret = compareInpFiles(ref_file, case_file)
-            unit_test.assertFalse(ret, "File \'{}\' test failed.\n{}".format(file, ret))
+            unit_test.assertFalse(ret, "File '{}' test failed.\n{}".format(file, ret))
 
 
 def updateReferenceDirectory(ref_dir, case_dir):
-    """ For every file in ref_dir, copy the corresponding one in case_dir """
+    """For every file in ref_dir, copy the corresponding one in case_dir"""
     """ over to ref_dir """
     fccPrint("Updating files in {} from those in {}".format(case_dir, ref_dir))
     for path, directories, files in os.walk(ref_dir):
         for file in files:
             ref_file = os.path.join(path, file)
             case_file = os.path.join(case_dir, os.path.relpath(path, ref_dir), file)
-            #fccPrint('Copying {} to {}'.format(case_file, ref_file))
+            # fccPrint('Copying {} to {}'.format(case_file, ref_file))
             shutil.copyfile(case_file, ref_file)
 
 
@@ -501,20 +535,20 @@ def runCfdUnitTests():
 
 
 def updateReferenceFiles():
-    """ Update all the reference files with those from runs just completed """
+    """Update all the reference files with those from runs just completed"""
 
     for item in os.scandir(os.path.join(test_file_dir, "cases")):
         if item.is_dir():
             dir_name = item.name
             mesh_ref_dir = os.path.join(test_file_dir, "cases", dir_name, "meshCase")
-            mesh_case_dir = os.path.join(temp_dir, "meshCase"+dir_name)
+            mesh_case_dir = os.path.join(temp_dir, "meshCase" + dir_name)
             if os.path.exists(mesh_case_dir):
                 updateReferenceDirectory(mesh_ref_dir, mesh_case_dir)
             else:
                 fccPrint("Test output data not found in {} - skipping".format(mesh_case_dir))
 
             ref_dir = os.path.join(test_file_dir, "cases", dir_name, "case")
-            case_dir = os.path.join(temp_dir, "case"+dir_name)
+            case_dir = os.path.join(temp_dir, "case" + dir_name)
             if os.path.exists(case_dir):
                 updateReferenceDirectory(ref_dir, case_dir)
             else:
@@ -522,16 +556,16 @@ def updateReferenceFiles():
 
 
 def cleanCfdUnitTests():
-    """ Clean up unit test data from temporary directory """
+    """Clean up unit test data from temporary directory"""
 
     for path, directories, files in os.walk(test_file_dir):
         for dir_name in directories:
-            mesh_case_dir = os.path.join(temp_dir, "meshCase"+dir_name)
+            mesh_case_dir = os.path.join(temp_dir, "meshCase" + dir_name)
             if os.path.exists(mesh_case_dir):
                 fccPrint("Cleaning directory {}".format(mesh_case_dir))
                 shutil.rmtree(mesh_case_dir)
 
-            case_dir = os.path.join(temp_dir, "case"+dir_name)
+            case_dir = os.path.join(temp_dir, "case" + dir_name)
             if os.path.exists(case_dir):
                 fccPrint("Cleaning directory {}".format(case_dir))
                 shutil.rmtree(case_dir)

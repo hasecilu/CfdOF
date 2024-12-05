@@ -32,12 +32,14 @@ import FreeCAD
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
+
 class CfdConsoleProcess:
     """
     Class to run a console process asynchronously, printing output and
     errors to the FreeCAD console and allowing clean termination in Linux
     and Windows
     """
+
     def __init__(self, finished_hook=None, stdout_hook=None, stderr_hook=None):
         self.process = QProcess()
         self.finishedHook = finished_hook
@@ -53,7 +55,7 @@ class CfdConsoleProcess:
         self.terminate()
 
     def start(self, cmd, env_vars=None, working_dir=None):
-        """ Start process and return immediately """
+        """Start process and return immediately"""
         self.print_next_error_lines = 0
         self.print_next_error_file = False
         env = QtCore.QProcessEnvironment.systemEnvironment()
@@ -66,22 +68,24 @@ class CfdConsoleProcess:
             self.process.setWorkingDirectory(working_dir)
         if platform.system() == "Windows":
             # Run through a wrapper process to allow clean termination
-            cmd = [os.path.join(FreeCAD.getHomePath(), "bin", "python.exe"),
-                   '-u',  # Prevent python from buffering stdout
-                   os.path.join(os.path.dirname(__file__), "WindowsRunWrapper.py")] + cmd
+            cmd = [
+                os.path.join(FreeCAD.getHomePath(), "bin", "python.exe"),
+                "-u",  # Prevent python from buffering stdout
+                os.path.join(os.path.dirname(__file__), "WindowsRunWrapper.py"),
+            ] + cmd
         FreeCAD.Console.PrintLog("CfdConsoleProcess running command: {}\n".format(cmd))
         self.process.setProgram(cmd[0])
         if platform.system() == "Windows":
             has_cmd = False
             for i, c in enumerate(cmd[1:]):
                 f = os.path.basename(c).lower()
-                if f == 'cmd' or f == 'cmd.exe':
+                if f == "cmd" or f == "cmd.exe":
                     has_cmd = True
-                elif has_cmd and c.lower() == '/c':
-                    self.process.setArguments(cmd[1:(i+1)])
+                elif has_cmd and c.lower() == "/c":
+                    self.process.setArguments(cmd[1 : (i + 1)])
                     # cmd.exe doesn't follow normal quoting rules for its /c argument, to this must be added unprocessed
                     # using setNativeArguments
-                    s = '/S /C ' + '"' + ' '.join(cmd[(i+2):]).replace('\\', '\\\\') + '"'
+                    s = "/S /C " + '"' + " ".join(cmd[(i + 2) :]).replace("\\", "\\\\") + '"'
                     self.process.setNativeArguments(s)
                     break
             if not has_cmd:
@@ -117,7 +121,7 @@ class CfdConsoleProcess:
                 if new_text:
                     text = new_text
             if text:
-                print(text, end='')  # Avoid displaying on FreeCAD status bar
+                print(text, end="")  # Avoid displaying on FreeCAD status bar
                 # Must be at the end as it can cause re-entrance
                 if FreeCAD.GuiUp:
                     FreeCAD.Gui.updateGui()
@@ -136,7 +140,7 @@ class CfdConsoleProcess:
                 if new_text is not None:
                     text = new_text
             if text:
-                print(text, end='', file=sys.stderr)  # Avoid displaying on FreeCAD status bar
+                print(text, end="", file=sys.stderr)  # Avoid displaying on FreeCAD status bar
                 # Must be at the end as it can cause re-entrance
                 if FreeCAD.GuiUp:
                     FreeCAD.Gui.updateGui()
@@ -170,7 +174,7 @@ class CfdConsoleProcess:
         :return: A message to be printed on console, or None
         """
         ret = ""
-        err_lines = err.split('\n')
+        err_lines = err.split("\n")
         for err_line in err_lines:
             if len(err_line) > 0:  # Ignore blanks
                 if self.print_next_error_lines > 0:
@@ -179,13 +183,15 @@ class CfdConsoleProcess:
                 if self.print_next_error_file and "file:" in err_line:
                     ret += err_line + "\n"
                     self.print_next_error_file = False
-                words = err_line.split(' ', 1)  # Split off first field for parallel
+                words = err_line.split(" ", 1)  # Split off first field for parallel
                 FATAL = "--> FOAM FATAL ERROR"
                 FATAL_IO = "--> FOAM FATAL IO ERROR"
                 if err_line.startswith(FATAL) or (len(words) > 1 and words[1].startswith(FATAL)):
                     self.print_next_error_lines = 1
                     ret += "OpenFOAM fatal error:\n"
-                elif err_line.startswith(FATAL_IO) or (len(words) > 1 and words[1].startswith(FATAL_IO)):
+                elif err_line.startswith(FATAL_IO) or (
+                    len(words) > 1 and words[1].startswith(FATAL_IO)
+                ):
                     self.print_next_error_lines = 1
                     self.print_next_error_file = True
                     ret += "OpenFOAM IO error:\n"
@@ -207,12 +213,12 @@ def removeAppimageEnvironment(env):
         appdir = env.value("APPDIR")
         keys = env.keys()
         for k in keys:
-            vals = env.value(k).split(':')
-            newvals = ''
+            vals = env.value(k).split(":")
+            newvals = ""
             for val in vals:
                 if not val.startswith(appdir):
-                    newvals += val + ':'
-            newvals = newvals.rstrip(':')
+                    newvals += val + ":"
+            newvals = newvals.rstrip(":")
             if newvals:
                 env.insert(k, newvals)
             else:

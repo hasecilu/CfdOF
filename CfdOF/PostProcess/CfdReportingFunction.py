@@ -33,13 +33,22 @@ from PySide.QtCore import QT_TRANSLATE_NOOP
 
 # Constants
 OBJECT_NAMES = ["Force", "ForceCoefficients", "Probes"]
-OBJECT_DESCRIPTIONS = ["Calculate forces on patches", "Calculate force coefficients from patches",
-    "Sample fields at specified locations"]
+OBJECT_DESCRIPTIONS = [
+    "Calculate forces on patches",
+    "Calculate force coefficients from patches",
+    "Sample fields at specified locations",
+]
 
 # GUI
 FUNCTIONS_UI = [0, 0, 1]
-FORCES_UI = [[True, False, True],    # Forces
-             [True, True, True, ]]   # Force coefficients
+FORCES_UI = [
+    [True, False, True],  # Forces
+    [
+        True,
+        True,
+        True,
+    ],
+]  # Force coefficients
 
 
 def makeCfdReportingFunction(name="ReportingFunction"):
@@ -53,25 +62,29 @@ def makeCfdReportingFunction(name="ReportingFunction"):
 class CommandCfdReportingFunction:
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "monitor.svg")
-        return {'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_ReportingFunctions",
-                                                     "Reporting function"),
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_ReportingFunctions",
-                                                    "Create a reporting function for the current case")}
+        return {
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_ReportingFunctions", "Reporting function"),
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_ReportingFunctions", "Create a reporting function for the current case"
+            ),
+        }
 
     def IsActive(self):
-        return CfdTools.getActiveAnalysis() is not None     # Same as for boundary condition commands
+        return CfdTools.getActiveAnalysis() is not None  # Same as for boundary condition commands
 
     def Activated(self):
         FreeCAD.ActiveDocument.openTransaction("Create CfdReportingFunction object")
         FreeCADGui.doCommand("from CfdOF.PostProcess import CfdReportingFunction")
         FreeCADGui.doCommand("from CfdOF import CfdTools")
-        FreeCADGui.doCommand("CfdTools.getActiveAnalysis().addObject(CfdReportingFunction.makeCfdReportingFunction())")
+        FreeCADGui.doCommand(
+            "CfdTools.getActiveAnalysis().addObject(CfdReportingFunction.makeCfdReportingFunction())"
+        )
         FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)
 
 
 class CfdReportingFunction:
-    """ CFD Function objects properties """
+    """CFD Function objects properties"""
 
     def __init__(self, obj):
         self.Type = "ReportingFunction"
@@ -82,51 +95,132 @@ class CfdReportingFunction:
     def initProperties(self, obj):
 
         # Setup and utility
-        addObjectProperty(obj, 'ReportingFunctionType', OBJECT_NAMES, "App::PropertyEnumeration", "",
-                          "Type of reporting function")
+        addObjectProperty(
+            obj,
+            "ReportingFunctionType",
+            OBJECT_NAMES,
+            "App::PropertyEnumeration",
+            "",
+            "Type of reporting function",
+        )
 
-        addObjectProperty(obj, 'Patch', None, "App::PropertyLinkGlobal", "Function object",
-                          "Patch on which to create the function object")
+        addObjectProperty(
+            obj,
+            "Patch",
+            None,
+            "App::PropertyLinkGlobal",
+            "Function object",
+            "Patch on which to create the function object",
+        )
 
         # Forces
-        addObjectProperty(obj, 'ReferenceDensity', '1 kg/m^3', "App::PropertyQuantity", "Forces",
-                          "Reference density")
-        addObjectProperty(obj, 'ReferencePressure', '0 Pa', "App::PropertyPressure", "Forces",
-                          "Reference pressure")
-        addObjectProperty(obj, 'CentreOfRotation', FreeCAD.Vector(0, 0, 0), "App::PropertyPosition", "Forces",
-                          "Centre of rotation")
-        addObjectProperty(obj, 'WriteFields', False, "App::PropertyBool", "Forces",
-                          "Whether to write output fields")
+        addObjectProperty(
+            obj,
+            "ReferenceDensity",
+            "1 kg/m^3",
+            "App::PropertyQuantity",
+            "Forces",
+            "Reference density",
+        )
+        addObjectProperty(
+            obj,
+            "ReferencePressure",
+            "0 Pa",
+            "App::PropertyPressure",
+            "Forces",
+            "Reference pressure",
+        )
+        addObjectProperty(
+            obj,
+            "CentreOfRotation",
+            FreeCAD.Vector(0, 0, 0),
+            "App::PropertyPosition",
+            "Forces",
+            "Centre of rotation",
+        )
+        addObjectProperty(
+            obj,
+            "WriteFields",
+            False,
+            "App::PropertyBool",
+            "Forces",
+            "Whether to write output fields",
+        )
 
         # Force coefficients
-        addObjectProperty(obj, 'Lift', FreeCAD.Vector(1, 0, 0), "App::PropertyVector", "Force coefficients",
-                          "Lift direction (x component)")
+        addObjectProperty(
+            obj,
+            "Lift",
+            FreeCAD.Vector(1, 0, 0),
+            "App::PropertyVector",
+            "Force coefficients",
+            "Lift direction (x component)",
+        )
 
-        addObjectProperty(obj, 'Drag', FreeCAD.Vector(0, 1, 0), "App::PropertyVector", "Force coefficients",
-                          "Drag direction")
+        addObjectProperty(
+            obj,
+            "Drag",
+            FreeCAD.Vector(0, 1, 0),
+            "App::PropertyVector",
+            "Force coefficients",
+            "Drag direction",
+        )
 
-        addObjectProperty(obj, 'MagnitudeUInf', '1 m/s', "App::PropertyQuantity", "Force coefficients",
-                          "Freestream velocity magnitude")
-        addObjectProperty(obj, 'LengthRef', '1 m', "App::PropertyQuantity", "Force coefficients",
-                          "Coefficient length reference")
-        addObjectProperty(obj, 'AreaRef', '1 m^2', "App::PropertyQuantity", "Force coefficients",
-                          "Coefficient area reference")
+        addObjectProperty(
+            obj,
+            "MagnitudeUInf",
+            "1 m/s",
+            "App::PropertyQuantity",
+            "Force coefficients",
+            "Freestream velocity magnitude",
+        )
+        addObjectProperty(
+            obj,
+            "LengthRef",
+            "1 m",
+            "App::PropertyQuantity",
+            "Force coefficients",
+            "Coefficient length reference",
+        )
+        addObjectProperty(
+            obj,
+            "AreaRef",
+            "1 m^2",
+            "App::PropertyQuantity",
+            "Force coefficients",
+            "Coefficient area reference",
+        )
 
         # Spatial binning
-        addObjectProperty(obj, 'NBins', 0, "App::PropertyInteger", "Forces",
-                          "Number of bins")
-        addObjectProperty(obj, 'Direction', FreeCAD.Vector(1, 0, 0), "App::PropertyVector", "Forces",
-                          "Binning direction")
-        addObjectProperty(obj, 'Cumulative', True, "App::PropertyBool", "Forces",
-                          "Cumulative")
+        addObjectProperty(obj, "NBins", 0, "App::PropertyInteger", "Forces", "Number of bins")
+        addObjectProperty(
+            obj,
+            "Direction",
+            FreeCAD.Vector(1, 0, 0),
+            "App::PropertyVector",
+            "Forces",
+            "Binning direction",
+        )
+        addObjectProperty(obj, "Cumulative", True, "App::PropertyBool", "Forces", "Cumulative")
 
         # Probes
-        addObjectProperty(obj, 'SampleFieldName', "p", "App::PropertyString", "Probes",
-                          "Name of the field to sample")
+        addObjectProperty(
+            obj,
+            "SampleFieldName",
+            "p",
+            "App::PropertyString",
+            "Probes",
+            "Name of the field to sample",
+        )
 
-        addObjectProperty(obj, 'ProbePosition', FreeCAD.Vector(0, 0, 0), "App::PropertyPosition", "Probes",
-                          "Location of the probe sample location")
-
+        addObjectProperty(
+            obj,
+            "ProbePosition",
+            FreeCAD.Vector(0, 0, 0),
+            "App::PropertyPosition",
+            "Probes",
+            "Location of the probe sample location",
+        )
 
     def onDocumentRestored(self, obj):
         self.initProperties(obj)
@@ -149,7 +243,8 @@ class CfdReportingFunction:
 
 
 class _CfdReportingFunctions:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def onDocumentRestored(self, obj):
         CfdReportingFunction(obj)
 
@@ -171,6 +266,7 @@ class ViewProviderCfdReportingFunction:
     """
     A View Provider for the CfdReportingFunction object
     """
+
     def __init__(self, vobj):
         vobj.Proxy = self
         self.taskd = None
@@ -184,7 +280,7 @@ class ViewProviderCfdReportingFunction:
         self.Object = vobj.Object
         self.standard = coin.SoGroup()
         vobj.addDisplayMode(self.standard, "Standard")
-        #self.ViewObject.Transparency = 95
+        # self.ViewObject.Transparency = 95
         return
 
     def getDisplayModes(self, obj):
@@ -194,7 +290,7 @@ class ViewProviderCfdReportingFunction:
     def getDefaultDisplayMode(self):
         return "Shaded"
 
-    def setDisplayMode(self,mode):
+    def setDisplayMode(self, mode):
         return mode
 
     def updateData(self, obj, prop):
@@ -203,7 +299,7 @@ class ViewProviderCfdReportingFunction:
             analysis_obj.NeedsCaseRewrite = True
 
     def onChanged(self, vobj, prop):
-        #CfdTools.setCompSolid(vobj)
+        # CfdTools.setCompSolid(vobj)
         return
 
     def doubleClicked(self, vobj):
@@ -211,7 +307,7 @@ class ViewProviderCfdReportingFunction:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Task dialog already active\n')
+            FreeCAD.Console.PrintError("Task dialog already active\n")
             FreeCADGui.Control.showTaskView()
         return True
 
@@ -223,6 +319,7 @@ class ViewProviderCfdReportingFunction:
 
         from CfdOF.PostProcess import TaskPanelCfdReportingFunction
         import importlib
+
         importlib.reload(TaskPanelCfdReportingFunction)
         taskd = TaskPanelCfdReportingFunction.TaskPanelCfdReportingFunction(self.Object)
         self.Object.ViewObject.show()
@@ -249,7 +346,8 @@ class ViewProviderCfdReportingFunction:
 
 
 class _ViewProviderCfdReportingFunctions:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def attach(self, vobj):
         new_proxy = ViewProviderCfdReportingFunction(vobj)
         new_proxy.attach(vobj)

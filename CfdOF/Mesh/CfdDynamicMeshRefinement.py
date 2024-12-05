@@ -32,20 +32,31 @@ from CfdOF.Mesh import TaskPanelCfdDynamicMeshShockRefinement
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
 
+
 class CommandGroupDynamicMeshRefinement:
     def GetCommands(self):
-        return ('CfdOF_DynamicMeshInterfaceRefinement','CfdOF_DynamicMeshShockRefinement',)
+        return (
+            "CfdOF_DynamicMeshInterfaceRefinement",
+            "CfdOF_DynamicMeshShockRefinement",
+        )
 
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "mesh_dynamic.svg")
-        return {#'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_GroupDynamicMeshRefinement", "Dynamic mesh refinement"),
-                'Accel': "M, D",
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_GroupDynamicMeshRefinement", "Allows adaptive refinement of the mesh")}
+        return {  #'Pixmap': icon_path,
+            "MenuText": QT_TRANSLATE_NOOP(
+                "CfdOF_GroupDynamicMeshRefinement", "Dynamic mesh refinement"
+            ),
+            "Accel": "M, D",
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_GroupDynamicMeshRefinement", "Allows adaptive refinement of the mesh"
+            ),
+        }
 
     def IsActive(self):
         sel = FreeCADGui.Selection.getSelection()
-        mesh_selected = (sel and len(sel) == 1 and hasattr(sel[0], "Proxy") and isinstance(sel[0].Proxy, CfdMesh))
+        mesh_selected = (
+            sel and len(sel) == 1 and hasattr(sel[0], "Proxy") and isinstance(sel[0].Proxy, CfdMesh)
+        )
         return mesh_selected
 
 
@@ -82,15 +93,23 @@ class CommandDynamicMeshInterfaceRefinement:
 
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "mesh_dynamic.svg")
-        return {'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_DynamicMeshInterfaceRefinement", "Interface dynamic refinement"),
-                'Accel': "M, D",
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_DynamicMeshInterfaceRefinement",
-                "Activates adaptive mesh refinement at free-surface interfaces")}
+        return {
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP(
+                "CfdOF_DynamicMeshInterfaceRefinement", "Interface dynamic refinement"
+            ),
+            "Accel": "M, D",
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_DynamicMeshInterfaceRefinement",
+                "Activates adaptive mesh refinement at free-surface interfaces",
+            ),
+        }
 
     def IsActive(self):
         sel = FreeCADGui.Selection.getSelection()
-        mesh_selected = (sel and len(sel) == 1 and hasattr(sel[0], "Proxy") and isinstance(sel[0].Proxy, CfdMesh))
+        mesh_selected = (
+            sel and len(sel) == 1 and hasattr(sel[0], "Proxy") and isinstance(sel[0].Proxy, CfdMesh)
+        )
 
         free_surf = False
         if mesh_selected:
@@ -99,7 +118,7 @@ class CommandDynamicMeshInterfaceRefinement:
             if analysis:
                 physics = CfdTools.getPhysicsModel(analysis)
                 if physics:
-                    free_surf = (physics.Phase == 'FreeSurface')
+                    free_surf = physics.Phase == "FreeSurface"
 
         return mesh_selected and free_surf
 
@@ -107,7 +126,7 @@ class CommandDynamicMeshInterfaceRefinement:
         is_present = False
         members = CfdTools.getMesh(CfdTools.getActiveAnalysis()).Group
         for i in members:
-            if hasattr(i, 'Proxy') and isinstance(i.Proxy, CfdDynamicMeshRefinement):
+            if hasattr(i, "Proxy") and isinstance(i.Proxy, CfdDynamicMeshRefinement):
                 FreeCADGui.activeDocument().setEdit(i.Name)
                 is_present = True
 
@@ -122,7 +141,10 @@ class CommandDynamicMeshInterfaceRefinement:
                     FreeCADGui.doCommand("from CfdOF.Mesh import CfdDynamicMeshRefinement")
                     FreeCADGui.doCommand("from CfdOF import CfdTools")
                     FreeCADGui.doCommand(
-                        "CfdDynamicMeshRefinement.makeCfdDynamicMeshInterfaceRefinement(App.ActiveDocument.{})".format(sobj.Name))
+                        "CfdDynamicMeshRefinement.makeCfdDynamicMeshInterfaceRefinement(App.ActiveDocument.{})".format(
+                            sobj.Name
+                        )
+                    )
                     FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)
 
         FreeCADGui.Selection.clearSelection()
@@ -135,15 +157,22 @@ class CommandDynamicMeshShockRefinement:
 
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "mesh_dynamic.svg")
-        return {'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_DynamicMeshShockRefinement", "Shockwave dynamic refinement"),
-                'Accel': "M, S",
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_DynamicMeshShockRefinement",
-                "Activates adaptive mesh refinement for shocks")}
+        return {
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP(
+                "CfdOF_DynamicMeshShockRefinement", "Shockwave dynamic refinement"
+            ),
+            "Accel": "M, S",
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_DynamicMeshShockRefinement", "Activates adaptive mesh refinement for shocks"
+            ),
+        }
 
     def IsActive(self):
         sel = FreeCADGui.Selection.getSelection()
-        mesh_selected = (sel and len(sel) == 1 and hasattr(sel[0], "Proxy") and isinstance(sel[0].Proxy, CfdMesh))
+        mesh_selected = (
+            sel and len(sel) == 1 and hasattr(sel[0], "Proxy") and isinstance(sel[0].Proxy, CfdMesh)
+        )
 
         high_mach = False
         if mesh_selected:
@@ -152,15 +181,15 @@ class CommandDynamicMeshShockRefinement:
             if analysis:
                 physics = CfdTools.getPhysicsModel(analysis)
                 if physics:
-                    high_mach = (physics.Flow == 'HighMachCompressible')
-        
+                    high_mach = physics.Flow == "HighMachCompressible"
+
         return mesh_selected and high_mach
 
     def Activated(self):
         is_present = False
         members = CfdTools.getMesh(CfdTools.getActiveAnalysis()).Group
         for i in members:
-            if hasattr(i, 'Proxy') and isinstance(i.Proxy, CfdDynamicMeshRefinement):
+            if hasattr(i, "Proxy") and isinstance(i.Proxy, CfdDynamicMeshRefinement):
                 FreeCADGui.activeDocument().setEdit(i.Name)
                 is_present = True
 
@@ -175,7 +204,10 @@ class CommandDynamicMeshShockRefinement:
                     FreeCADGui.doCommand("from CfdOF.Mesh import CfdDynamicMeshRefinement")
                     FreeCADGui.doCommand("from CfdOF import CfdTools")
                     FreeCADGui.doCommand(
-                        "CfdDynamicMeshRefinement.makeCfdDynamicMeshShockRefinement(App.ActiveDocument.{})".format(sobj.Name))
+                        "CfdDynamicMeshRefinement.makeCfdDynamicMeshShockRefinement(App.ActiveDocument.{})".format(
+                            sobj.Name
+                        )
+                    )
                     FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)
 
         FreeCADGui.Selection.clearSelection()
@@ -189,33 +221,65 @@ class CfdDynamicMeshInterfaceRefinement:
         self.initProperties(obj)
 
     def initProperties(self, obj):
-        addObjectProperty(obj, "Phase", "", "App::PropertyString", "DynamicMesh",
-                          "Set the target refinement interface phase")
+        addObjectProperty(
+            obj,
+            "Phase",
+            "",
+            "App::PropertyString",
+            "DynamicMesh",
+            "Set the target refinement interface phase",
+        )
 
-        addObjectProperty(obj, "RefinementInterval", 1, "App::PropertyInteger", "DynamicMesh",
-                          "Set the interval at which to run the dynamic mesh refinement")
+        addObjectProperty(
+            obj,
+            "RefinementInterval",
+            1,
+            "App::PropertyInteger",
+            "DynamicMesh",
+            "Set the interval at which to run the dynamic mesh refinement",
+        )
 
-        addObjectProperty(obj, "MaxRefinementLevel", 1, "App::PropertyInteger", "DynamicMesh",
-                          "Set the maximum dynamic mesh refinement level")
+        addObjectProperty(
+            obj,
+            "MaxRefinementLevel",
+            1,
+            "App::PropertyInteger",
+            "DynamicMesh",
+            "Set the maximum dynamic mesh refinement level",
+        )
 
-        addObjectProperty(obj, "BufferLayers", 1, "App::PropertyInteger", "DynamicMesh",
-                          "Set the number of buffer layers between refined and existing cells")
+        addObjectProperty(
+            obj,
+            "BufferLayers",
+            1,
+            "App::PropertyInteger",
+            "DynamicMesh",
+            "Set the number of buffer layers between refined and existing cells",
+        )
 
-        addObjectProperty(obj, "WriteFields", False, "App::PropertyBool", "DynamicMesh",
-                          "Whether to write the dynamic mesh refinement fields after refinement")
+        addObjectProperty(
+            obj,
+            "WriteFields",
+            False,
+            "App::PropertyBool",
+            "DynamicMesh",
+            "Whether to write the dynamic mesh refinement fields after refinement",
+        )
 
     def onDocumentRestored(self, obj):
         self.initProperties(obj)
 
 
 class CfdDynamicMeshRefinement:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def onDocumentRestored(self, obj):
         CfdDynamicMeshInterfaceRefinement(obj)
 
 
 class _CfdDynamicMeshRefinement:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def onDocumentRestored(self, obj):
         CfdDynamicMeshInterfaceRefinement(obj)
 
@@ -228,23 +292,59 @@ class CfdDynamicMeshShockRefinement:
         self.initProperties(obj)
 
     def initProperties(self, obj):
-        addObjectProperty(obj, "ReferenceVelocityDirection", FreeCAD.Vector(1, 0, 0), "App::PropertyVector", "DynamicMesh",
-                          "Reference velocity direction (typically free-stream/input value)")
+        addObjectProperty(
+            obj,
+            "ReferenceVelocityDirection",
+            FreeCAD.Vector(1, 0, 0),
+            "App::PropertyVector",
+            "DynamicMesh",
+            "Reference velocity direction (typically free-stream/input value)",
+        )
 
-        addObjectProperty(obj, "RelativeElementSize", 1, "App::PropertyFloat", "DynamicMesh",
-                          "Refinement relative to the base mesh")
+        addObjectProperty(
+            obj,
+            "RelativeElementSize",
+            1,
+            "App::PropertyFloat",
+            "DynamicMesh",
+            "Refinement relative to the base mesh",
+        )
 
-        addObjectProperty(obj, "RefinementIntervalSteady", 50, "App::PropertyInteger", "DynamicMesh",
-                          "Interval at which to run the dynamic mesh refinement in steady analyses")
+        addObjectProperty(
+            obj,
+            "RefinementIntervalSteady",
+            50,
+            "App::PropertyInteger",
+            "DynamicMesh",
+            "Interval at which to run the dynamic mesh refinement in steady analyses",
+        )
 
-        addObjectProperty(obj, "RefinementIntervalTransient", 5, "App::PropertyInteger", "DynamicMesh",
-                          "Interval at which to run the dynamic mesh refinement in transient analyses")
+        addObjectProperty(
+            obj,
+            "RefinementIntervalTransient",
+            5,
+            "App::PropertyInteger",
+            "DynamicMesh",
+            "Interval at which to run the dynamic mesh refinement in transient analyses",
+        )
 
-        addObjectProperty(obj, "BufferLayers", 1, "App::PropertyInteger", "DynamicMesh",
-                          "Number of buffer layers between refined and existing cells")
+        addObjectProperty(
+            obj,
+            "BufferLayers",
+            1,
+            "App::PropertyInteger",
+            "DynamicMesh",
+            "Number of buffer layers between refined and existing cells",
+        )
 
-        addObjectProperty(obj, "WriteFields", False, "App::PropertyBool", "DynamicMesh",
-                          "Whether to write the indicator fields for shock wave detection")
+        addObjectProperty(
+            obj,
+            "WriteFields",
+            False,
+            "App::PropertyBool",
+            "DynamicMesh",
+            "Whether to write the indicator fields for shock wave detection",
+        )
 
     def onDocumentRestored(self, obj):
         self.initProperties(obj)
@@ -294,9 +394,13 @@ class ViewProviderCfdDynamicMeshInterfaceRefinement:
         material_models = CfdTools.getMaterials(analysis_object)
 
         import importlib
+
         importlib.reload(TaskPanelCfdDynamicMeshInterfaceRefinement)
-        taskd = TaskPanelCfdDynamicMeshInterfaceRefinement.TaskPanelCfdDynamicMeshInterfaceRefinement(
-            self.Object, physics_model, material_models)
+        taskd = (
+            TaskPanelCfdDynamicMeshInterfaceRefinement.TaskPanelCfdDynamicMeshInterfaceRefinement(
+                self.Object, physics_model, material_models
+            )
+        )
         taskd.obj = vobj.Object
         FreeCADGui.Control.showDialog(taskd)
         return True
@@ -310,7 +414,7 @@ class ViewProviderCfdDynamicMeshInterfaceRefinement:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Task dialog already open\n')
+            FreeCAD.Console.PrintError("Task dialog already open\n")
             FreeCADGui.Control.showTaskView()
         return True
 
@@ -329,7 +433,8 @@ class ViewProviderCfdDynamicMeshInterfaceRefinement:
 
 
 class ViewProviderCfdDynamicMeshRefinement:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def attach(self, vobj):
         new_proxy = ViewProviderCfdDynamicMeshInterfaceRefinement(vobj)
         new_proxy.attach(vobj)
@@ -349,7 +454,8 @@ class ViewProviderCfdDynamicMeshRefinement:
 
 
 class _ViewProviderCfdDynamicMeshRefinement:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def attach(self, vobj):
         new_proxy = ViewProviderCfdDynamicMeshInterfaceRefinement(vobj)
         new_proxy.attach(vobj)
@@ -412,9 +518,11 @@ class ViewProviderCfdDynamicMeshShockRefinement:
         material_models = CfdTools.getMaterials(analysis_object)
 
         import importlib
+
         importlib.reload(TaskPanelCfdDynamicMeshShockRefinement)
         taskd = TaskPanelCfdDynamicMeshShockRefinement.TaskPanelCfdDynamicMeshShockRefinement(
-            self.Object, physics_model, material_models)
+            self.Object, physics_model, material_models
+        )
         taskd.obj = vobj.Object
         FreeCADGui.Control.showDialog(taskd)
         return True
@@ -428,7 +536,7 @@ class ViewProviderCfdDynamicMeshShockRefinement:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Task dialog already open\n')
+            FreeCAD.Console.PrintError("Task dialog already open\n")
             FreeCADGui.Control.showTaskView()
         return True
 

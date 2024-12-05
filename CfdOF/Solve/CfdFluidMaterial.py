@@ -25,6 +25,7 @@
 
 import os
 import FreeCAD
+
 if FreeCAD.GuiUp:
     import FreeCADGui
 from CfdOF import CfdTools
@@ -32,7 +33,9 @@ from CfdOF.CfdTools import addObjectProperty
 from CfdOF.Solve import TaskPanelCfdFluidProperties
 
 from PySide.QtCore import QT_TRANSLATE_NOOP
+
 translate = FreeCAD.Qt.translate
+
 
 def makeCfdFluidMaterial(name):
     obj = FreeCAD.ActiveDocument.addObject("App::MaterialObjectPython", name)
@@ -47,9 +50,10 @@ class CommandCfdFluidMaterial:
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "material.svg")
         return {
-            'Pixmap': icon_path,
-            'MenuText': QT_TRANSLATE_NOOP("CfdOF_FluidMaterial", "Add fluid properties"),
-            'ToolTip': QT_TRANSLATE_NOOP("CfdOF_FluidMaterial", "Add fluid properties")}
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_FluidMaterial", "Add fluid properties"),
+            "ToolTip": QT_TRANSLATE_NOOP("CfdOF_FluidMaterial", "Add fluid properties"),
+        }
 
     def IsActive(self):
         return CfdTools.getActiveAnalysis() is not None
@@ -65,7 +69,7 @@ class CommandCfdFluidMaterial:
             CfdTools.cfdErrorBox("No active analysis object found")
             return False
         physics_model = CfdTools.getPhysicsModel(analysis_object)
-        if not physics_model or physics_model.Phase == 'Single':
+        if not physics_model or physics_model.Phase == "Single":
             members = analysis_object.Group
             for i in members:
                 if isinstance(i.Proxy, CfdMaterial):
@@ -73,12 +77,14 @@ class CommandCfdFluidMaterial:
                     editing_existing = True
         if not editing_existing:
             FreeCADGui.doCommand(
-                "CfdTools.getActiveAnalysis().addObject(CfdFluidMaterial.makeCfdFluidMaterial('FluidProperties'))")
+                "CfdTools.getActiveAnalysis().addObject(CfdFluidMaterial.makeCfdFluidMaterial('FluidProperties'))"
+            )
             FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)
 
 
 class CfdMaterial:
-    """ CFD material properties object. Compatible with FreeCAD material object. """
+    """CFD material properties object. Compatible with FreeCAD material object."""
+
     def __init__(self, obj):
         obj.Proxy = self
         self.Type = "CfdMaterial"
@@ -86,21 +92,36 @@ class CfdMaterial:
 
     def initProperties(self, obj):
         # Not currently used, but required for parent class
-        addObjectProperty(obj, "References", [], "App::PropertyLinkSubListGlobal", "Material", "List of material shapes")
+        addObjectProperty(
+            obj,
+            "References",
+            [],
+            "App::PropertyLinkSubListGlobal",
+            "Material",
+            "List of material shapes",
+        )
 
         # Compatibility with FEM material object
         if addObjectProperty(
-                obj, "Category", ["Solid", "Fluid"], "App::PropertyEnumeration", "Material", "Type of material"):
+            obj,
+            "Category",
+            ["Solid", "Fluid"],
+            "App::PropertyEnumeration",
+            "Material",
+            "Type of material",
+        ):
             obj.Category = "Fluid"
 
         # 'Material' PropertyMap already present in MaterialObjectPython
         if not obj.Material:
             mats, name_path_list = CfdTools.importMaterials()
             # Load a default to initialise the values for each type
-            obj.Material = mats[name_path_list[[np[0] for np in name_path_list].index('AirIsothermal')][1]]
-        elif not obj.Material.get('Type'):
+            obj.Material = mats[
+                name_path_list[[np[0] for np in name_path_list].index("AirIsothermal")][1]
+            ]
+        elif not obj.Material.get("Type"):
             mat = obj.Material
-            mat['Type'] = 'Isothermal'
+            mat["Type"] = "Isothermal"
             obj.Material = mat
 
     def onDocumentRestored(self, obj):
@@ -111,7 +132,8 @@ class CfdMaterial:
 
 
 class _CfdMaterial:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def onDocumentRestored(self, obj):
         CfdMaterial(obj)
 
@@ -147,8 +169,11 @@ class ViewProviderCfdFluidMaterial:
             CfdTools.cfdErrorBox("Analysis object must have a physics object")
             return False
         import importlib
+
         importlib.reload(TaskPanelCfdFluidProperties)
-        self.taskd = TaskPanelCfdFluidProperties.TaskPanelCfdFluidProperties(self.Object, physics_model)
+        self.taskd = TaskPanelCfdFluidProperties.TaskPanelCfdFluidProperties(
+            self.Object, physics_model
+        )
         self.taskd.obj = vobj.Object
         FreeCADGui.Control.showDialog(self.taskd)
         return True
@@ -158,7 +183,7 @@ class ViewProviderCfdFluidMaterial:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Task dialog already open\n')
+            FreeCAD.Console.PrintError("Task dialog already open\n")
             FreeCADGui.Control.showTaskView()
         return True
 
@@ -183,7 +208,8 @@ class ViewProviderCfdFluidMaterial:
 
 
 class _ViewProviderCfdFluidMaterial:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def attach(self, vobj):
         new_proxy = ViewProviderCfdFluidMaterial(vobj)
         new_proxy.attach(vobj)

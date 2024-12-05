@@ -57,14 +57,18 @@ class CommandMeshRegion:
 
     def GetResources(self):
         icon_path = os.path.join(CfdTools.getModulePath(), "Gui", "Icons", "mesh_region.svg")
-        return {'Pixmap': icon_path,
-                'MenuText': QT_TRANSLATE_NOOP("CfdOF_MeshRegion", "Mesh refinement"),
-                'Accel': "M, R",
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_MeshRegion", "Creates a mesh refinement")}
+        return {
+            "Pixmap": icon_path,
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_MeshRegion", "Mesh refinement"),
+            "Accel": "M, R",
+            "ToolTip": QT_TRANSLATE_NOOP("CfdOF_MeshRegion", "Creates a mesh refinement"),
+        }
 
     def IsActive(self):
         sel = FreeCADGui.Selection.getSelection()
-        return sel and len(sel) == 1 and hasattr(sel[0], "Proxy") and isinstance(sel[0].Proxy, CfdMesh)
+        return (
+            sel and len(sel) == 1 and hasattr(sel[0], "Proxy") and isinstance(sel[0].Proxy, CfdMesh)
+        )
 
     def Activated(self):
         sel = FreeCADGui.Selection.getSelection()
@@ -75,7 +79,10 @@ class CommandMeshRegion:
                 FreeCADGui.doCommand("")
                 FreeCADGui.doCommand("from CfdOF.Mesh import CfdMeshRefinement")
                 FreeCADGui.doCommand(
-                    "CfdMeshRefinement.makeCfdMeshRefinement(App.ActiveDocument.{})".format(sobj.Name))
+                    "CfdMeshRefinement.makeCfdMeshRefinement(App.ActiveDocument.{})".format(
+                        sobj.Name
+                    )
+                )
                 FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)
 
         FreeCADGui.Selection.clearSelection()
@@ -90,71 +97,169 @@ class CfdMeshRefinement:
 
     def initProperties(self, obj):
         # Common to all
-        if addObjectProperty(obj, 'ShapeRefs', [], "App::PropertyLinkSubListGlobal", "", "List of mesh refinement objects"):
+        if addObjectProperty(
+            obj,
+            "ShapeRefs",
+            [],
+            "App::PropertyLinkSubListGlobal",
+            "",
+            "List of mesh refinement objects",
+        ):
             # Backward compat
-            if 'References' in obj.PropertiesList:
+            if "References" in obj.PropertiesList:
                 doc = FreeCAD.getDocument(obj.Document.Name)
                 for r in obj.References:
                     if not r[1]:
                         obj.ShapeRefs += [doc.getObject(r[0])]
                     else:
                         obj.ShapeRefs += [(doc.getObject(r[0]), r[1])]
-                obj.removeProperty('References')
-                obj.removeProperty('LinkedObjects')
+                obj.removeProperty("References")
+                obj.removeProperty("LinkedObjects")
 
-        addObjectProperty(obj, "Internal", False, "App::PropertyBool", "",
-                          "Whether the refinement region is a volume rather than surface")
+        addObjectProperty(
+            obj,
+            "Internal",
+            False,
+            "App::PropertyBool",
+            "",
+            "Whether the refinement region is a volume rather than surface",
+        )
 
-        addObjectProperty(obj, "Extrusion", False, "App::PropertyBool", "",
-                          "Defines an extrusion from a patch")
+        addObjectProperty(
+            obj, "Extrusion", False, "App::PropertyBool", "", "Defines an extrusion from a patch"
+        )
 
-        addObjectProperty(obj, "RelativeLength", 0.75, "App::PropertyFloat", "Refinement",
-                          "Set relative length of the elements for this region")
+        addObjectProperty(
+            obj,
+            "RelativeLength",
+            0.75,
+            "App::PropertyFloat",
+            "Refinement",
+            "Set relative length of the elements for this region",
+        )
 
-        addObjectProperty(obj, "RefinementThickness", "0 m", "App::PropertyLength", "Surface refinement",
-                          "Set refinement region thickness")
+        addObjectProperty(
+            obj,
+            "RefinementThickness",
+            "0 m",
+            "App::PropertyLength",
+            "Surface refinement",
+            "Set refinement region thickness",
+        )
 
-        addObjectProperty(obj, "NumberLayers", 0, "App::PropertyInteger", "Surface refinement",
-                          "Set number of boundary layers")
+        addObjectProperty(
+            obj,
+            "NumberLayers",
+            0,
+            "App::PropertyInteger",
+            "Surface refinement",
+            "Set number of boundary layers",
+        )
 
-        addObjectProperty(obj, "ExpansionRatio", 1.0, "App::PropertyFloat", "Surface refinement",
-                          "Set expansion ratio within boundary layers")
+        addObjectProperty(
+            obj,
+            "ExpansionRatio",
+            1.0,
+            "App::PropertyFloat",
+            "Surface refinement",
+            "Set expansion ratio within boundary layers",
+        )
 
-        addObjectProperty(obj, "FirstLayerHeight", "0 m", "App::PropertyLength", "Surface refinement",
-                          "Set the maximum first layer height")
+        addObjectProperty(
+            obj,
+            "FirstLayerHeight",
+            "0 m",
+            "App::PropertyLength",
+            "Surface refinement",
+            "Set the maximum first layer height",
+        )
 
-        addObjectProperty(obj, "RegionEdgeRefinement", 1, "App::PropertyFloat", "Surface refinement",
-                          "Relative edge (feature) refinement")
+        addObjectProperty(
+            obj,
+            "RegionEdgeRefinement",
+            1,
+            "App::PropertyFloat",
+            "Surface refinement",
+            "Relative edge (feature) refinement",
+        )
 
-        addObjectProperty(obj, "ExtrusionType", EXTRUSION_TYPES[0], "App::PropertyString", "Extrusion",
-                          "Type of extrusion")
+        addObjectProperty(
+            obj,
+            "ExtrusionType",
+            EXTRUSION_TYPES[0],
+            "App::PropertyString",
+            "Extrusion",
+            "Type of extrusion",
+        )
 
-        addObjectProperty(obj, "KeepExistingMesh", False, "App::PropertyBool", "Extrusion",
-                          "If true, then the extrusion extends the existing mesh rather than replacing it")
+        addObjectProperty(
+            obj,
+            "KeepExistingMesh",
+            False,
+            "App::PropertyBool",
+            "Extrusion",
+            "If true, then the extrusion extends the existing mesh rather than replacing it",
+        )
 
-        addObjectProperty(obj, "ExtrusionThickness", "1 mm", "App::PropertyLength", "Extrusion",
-                          "Total distance of the extruded layers")
+        addObjectProperty(
+            obj,
+            "ExtrusionThickness",
+            "1 mm",
+            "App::PropertyLength",
+            "Extrusion",
+            "Total distance of the extruded layers",
+        )
 
-        addObjectProperty(obj, "ExtrusionAngle", 5, "App::PropertyAngle", "Extrusion",
-                          "Total angle through which the patch is extruded")
+        addObjectProperty(
+            obj,
+            "ExtrusionAngle",
+            5,
+            "App::PropertyAngle",
+            "Extrusion",
+            "Total angle through which the patch is extruded",
+        )
 
-        addObjectProperty(obj, "ExtrusionLayers", 1, "App::PropertyInteger", "Extrusion",
-                          "Number of extrusion layers to add")
+        addObjectProperty(
+            obj,
+            "ExtrusionLayers",
+            1,
+            "App::PropertyInteger",
+            "Extrusion",
+            "Number of extrusion layers to add",
+        )
 
-        addObjectProperty(obj, "ExtrusionRatio", 1.0, "App::PropertyFloat", "Extrusion",
-                          "Expansion ratio of extrusion layers")
+        addObjectProperty(
+            obj,
+            "ExtrusionRatio",
+            1.0,
+            "App::PropertyFloat",
+            "Extrusion",
+            "Expansion ratio of extrusion layers",
+        )
 
-        addObjectProperty(obj, "ExtrusionAxisPoint", FreeCAD.Vector(0, 0, 0), "App::PropertyPosition", "Extrusion",
-                          "Point on axis for sector extrusion")
+        addObjectProperty(
+            obj,
+            "ExtrusionAxisPoint",
+            FreeCAD.Vector(0, 0, 0),
+            "App::PropertyPosition",
+            "Extrusion",
+            "Point on axis for sector extrusion",
+        )
 
-        addObjectProperty(obj, "ExtrusionAxisDirection", FreeCAD.Vector(1, 0, 0), "App::PropertyVector", "Extrusion",
-                          "Direction of axis for sector extrusion")
+        addObjectProperty(
+            obj,
+            "ExtrusionAxisDirection",
+            FreeCAD.Vector(1, 0, 0),
+            "App::PropertyVector",
+            "Extrusion",
+            "Direction of axis for sector extrusion",
+        )
 
     def onDocumentRestored(self, obj):
         self.initProperties(obj)
 
     def execute(self, obj):
-        """ Create compound part at recompute. """
+        """Create compound part at recompute."""
         shape = CfdTools.makeShapeFromReferences(obj.ShapeRefs, False)
         if shape is None:
             shape = Part.Shape()
@@ -166,7 +271,8 @@ class CfdMeshRefinement:
 
 
 class _CfdMeshRefinement:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def onDocumentRestored(self, obj):
         CfdMeshRefinement(obj)
 
@@ -199,8 +305,8 @@ class ViewProviderCfdMeshRefinement:
     def updateData(self, obj, prop):
         analysis_obj = CfdTools.getParentAnalysisObject(obj)
         if analysis_obj and not analysis_obj.Proxy.loading:
-            if prop == 'Shape':
-                # Updates to the shape should be taken care of via links in 
+            if prop == "Shape":
+                # Updates to the shape should be taken care of via links in
                 # ShapeRefs
                 pass
             else:
@@ -211,6 +317,7 @@ class ViewProviderCfdMeshRefinement:
 
     def setEdit(self, vobj, mode=0):
         import importlib
+
         importlib.reload(TaskPanelCfdMeshRefinement)
         self.taskd = TaskPanelCfdMeshRefinement.TaskPanelCfdMeshRefinement(self.Object)
         self.taskd.obj = vobj.Object
@@ -222,7 +329,7 @@ class ViewProviderCfdMeshRefinement:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Task dialog already open\n')
+            FreeCAD.Console.PrintError("Task dialog already open\n")
             FreeCADGui.Control.showTaskView()
         return True
 
@@ -247,7 +354,8 @@ class ViewProviderCfdMeshRefinement:
 
 
 class _ViewProviderCfdMeshRefinement:
-    """ Backward compatibility for old class name when loading from file """
+    """Backward compatibility for old class name when loading from file"""
+
     def attach(self, vobj):
         new_proxy = ViewProviderCfdMeshRefinement(vobj)
         new_proxy.attach(vobj)

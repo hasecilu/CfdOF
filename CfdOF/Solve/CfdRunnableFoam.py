@@ -60,7 +60,7 @@ class CfdRunnable(QObject, object):
             self.results_present = False
             self.result_object = None
         else:
-            raise Exception('No active analysis found')
+            raise Exception("No active analysis found")
 
 
 class CfdRunnableFoam(CfdRunnable):
@@ -86,20 +86,24 @@ class CfdRunnableFoam(CfdRunnable):
                 if rf.ReportingFunctionType == "Force":
                     self.forces[rf.Label] = {}
                     if rf.Label not in self.solver.Proxy.forces_plotters:
-                        self.solver.Proxy.forces_plotters[rf.Label] = \
-                            TimePlot(title=rf.Label, y_label="Force [N]", is_log=False)
+                        self.solver.Proxy.forces_plotters[rf.Label] = TimePlot(
+                            title=rf.Label, y_label="Force [N]", is_log=False
+                        )
                 elif rf.ReportingFunctionType == "ForceCoefficients":
                     self.force_coeffs[rf.Label] = {}
                     if rf.Label not in self.solver.Proxy.force_coeffs_plotters:
-                        self.solver.Proxy.force_coeffs_plotters[rf.Label] = \
-                            TimePlot(title=rf.Label, y_label="Coefficient", is_log=False)
-                elif rf.ReportingFunctionType == 'Probes':
+                        self.solver.Proxy.force_coeffs_plotters[rf.Label] = TimePlot(
+                            title=rf.Label, y_label="Coefficient", is_log=False
+                        )
+                elif rf.ReportingFunctionType == "Probes":
                     self.probes[rf.Label] = {
-                        'field': rf.SampleFieldName, 
-                        'points': [rf.ProbePosition]}
+                        "field": rf.SampleFieldName,
+                        "points": [rf.ProbePosition],
+                    }
                     if rf.Label not in self.solver.Proxy.probes_plotters:
-                        self.solver.Proxy.probes_plotters[rf.Label] = \
-                            TimePlot(title=rf.Label, y_label=rf.SampleFieldName, is_log=False)
+                        self.solver.Proxy.probes_plotters[rf.Label] = TimePlot(
+                            title=rf.Label, y_label=rf.SampleFieldName, is_log=False
+                        )
                     else:
                         self.solver.Proxy.probes_plotters[rf.Label].y_label = rf.SampleFieldName
 
@@ -134,42 +138,69 @@ class CfdRunnableFoam(CfdRunnable):
 
         for fn in self.forces:
             # OpenCFD
-            file_name = os.path.join(solver_dir, 'postProcessing', fn, '0', 'force.dat')
-            legends = ["$F_X$ (pressure)", "$F_Y$ (pressure)", "$F_Z$ (pressure)", 
-                       "$F_X$ (viscous)", "$F_Y$ (viscous)", "$F_Z$ (viscous)"]
-            self.postproc_readers += [PostProcessingReader(
-                file_name, [4, 5, 6, 7, 8, 9], legends, self.solver.Proxy.forces_plotters[fn])]
+            file_name = os.path.join(solver_dir, "postProcessing", fn, "0", "force.dat")
+            legends = [
+                "$F_X$ (pressure)",
+                "$F_Y$ (pressure)",
+                "$F_Z$ (pressure)",
+                "$F_X$ (viscous)",
+                "$F_Y$ (viscous)",
+                "$F_Z$ (viscous)",
+            ]
+            self.postproc_readers += [
+                PostProcessingReader(
+                    file_name, [4, 5, 6, 7, 8, 9], legends, self.solver.Proxy.forces_plotters[fn]
+                )
+            ]
             # Foundation
-            file_name = os.path.join(solver_dir, 'postProcessing', fn, '0', 'forces.dat')
+            file_name = os.path.join(solver_dir, "postProcessing", fn, "0", "forces.dat")
             legends = ["$F${} (pressure)", "$F${} (viscous)"]
-            self.postproc_readers += [PostProcessingReader(
-                file_name, [1, 2], legends, self.solver.Proxy.forces_plotters[fn])]
+            self.postproc_readers += [
+                PostProcessingReader(
+                    file_name, [1, 2], legends, self.solver.Proxy.forces_plotters[fn]
+                )
+            ]
             self.solver.Proxy.forces_plotters[fn].reInitialise(self.analysis)
 
         for fcn in self.force_coeffs:
             legends = ["$C_D$", "$C_L$"]
             # OpenCFD
-            file_name = os.path.join(solver_dir, 'postProcessing', fcn, '0', 'coefficient.dat')
-            self.postproc_readers += [PostProcessingReader(
-                file_name, [1, 4], legends, self.solver.Proxy.force_coeffs_plotters[fcn])]
+            file_name = os.path.join(solver_dir, "postProcessing", fcn, "0", "coefficient.dat")
+            self.postproc_readers += [
+                PostProcessingReader(
+                    file_name, [1, 4], legends, self.solver.Proxy.force_coeffs_plotters[fcn]
+                )
+            ]
             # Foundation
-            file_name = os.path.join(solver_dir, 'postProcessing', fcn, '0', 'forceCoeffs.dat')
-            self.postproc_readers += [PostProcessingReader(
-                file_name, [2, 3], legends, self.solver.Proxy.force_coeffs_plotters[fcn])]
+            file_name = os.path.join(solver_dir, "postProcessing", fcn, "0", "forceCoeffs.dat")
+            self.postproc_readers += [
+                PostProcessingReader(
+                    file_name, [2, 3], legends, self.solver.Proxy.force_coeffs_plotters[fcn]
+                )
+            ]
             self.solver.Proxy.force_coeffs_plotters[fcn].reInitialise(self.analysis)
 
         for pn in self.probes:
             p = self.probes[pn]
-            file_name = os.path.join(solver_dir, 'postProcessing', pn, '0', p['field'])
+            file_name = os.path.join(solver_dir, "postProcessing", pn, "0", p["field"])
             legends = []
-            for pi in p['points']:
-                points_str = '({}, {}, {}) m'.format(
-                    *(Units.Quantity(pij, Units.Length).getValueAs('m') for pij in (pi.x, pi.y, pi.z)))
-                legends.append('{}{{}} @ '.format(p['field']) + points_str)
-            self.postproc_readers += [PostProcessingReader(
-                file_name, range(1, len(p['points'])+1), legends, self.solver.Proxy.probes_plotters[pn])]
+            for pi in p["points"]:
+                points_str = "({}, {}, {}) m".format(
+                    *(
+                        Units.Quantity(pij, Units.Length).getValueAs("m")
+                        for pij in (pi.x, pi.y, pi.z)
+                    )
+                )
+                legends.append("{}{{}} @ ".format(p["field"]) + points_str)
+            self.postproc_readers += [
+                PostProcessingReader(
+                    file_name,
+                    range(1, len(p["points"]) + 1),
+                    legends,
+                    self.solver.Proxy.probes_plotters[pn],
+                )
+            ]
             self.solver.Proxy.probes_plotters[pn].reInitialise(self.analysis)
-
 
     def getSolverCmd(self, case_dir):
         self.initResiduals()
@@ -177,9 +208,9 @@ class CfdRunnableFoam(CfdRunnable):
 
         # Environment is sourced in run script, so no need to include in run command
         if CfdTools.getFoamRuntime() == "MinGW":
-            cmd = CfdTools.makeRunCommand('Allrun.bat', case_dir, source_env=False)
+            cmd = CfdTools.makeRunCommand("Allrun.bat", case_dir, source_env=False)
         else:
-            cmd = CfdTools.makeRunCommand('./Allrun', case_dir, source_env=False)
+            cmd = CfdTools.makeRunCommand("./Allrun", case_dir, source_env=False)
 
         return cmd
 
@@ -187,16 +218,16 @@ class CfdRunnableFoam(CfdRunnable):
         return CfdTools.getRunEnvironment()
 
     def processOutput(self, text):
-        log_lines = text.split('\n')[:-1]
+        log_lines = text.split("\n")[:-1]
         prev_niter = self.niter
         for line in log_lines:
             line = line.rstrip()
             split = line.split()
 
             # Only record the first residual per outer iteration
-            if line.startswith(u"Time = "):
+            if line.startswith("Time = "):
                 try:
-                    time_val = float(line.lstrip(u"Time = ").rstrip("s"))
+                    time_val = float(line.lstrip("Time = ").rstrip("s"))
                 except ValueError:
                     pass
                 else:
@@ -210,7 +241,7 @@ class CfdRunnableFoam(CfdRunnable):
                     self.in_forces_section = None
                     self.in_forcecoeffs_section = None
 
-            if line.find(u"PIMPLE: iteration ") >= 0 or line.find(u"pseudoTime: iteration ") >= 0:
+            if line.find("PIMPLE: iteration ") >= 0 or line.find("pseudoTime: iteration ") >= 0:
                 self.latest_outer_iter += 1
                 # Don't increment counter on first outer iter as this was already done with time
                 if self.latest_outer_iter > 1:
@@ -222,58 +253,67 @@ class CfdRunnableFoam(CfdRunnable):
                 if self.latest_outer_iter > 0:
                     # Outer-iteration case
                     # Create virtual times to space the residuals of the outer iterations nicely on the time graph
-                    self.prev_num_outer_iters = max(self.prev_num_outer_iters, self.latest_outer_iter)
+                    self.prev_num_outer_iters = max(
+                        self.prev_num_outer_iters, self.latest_outer_iter
+                    )
                     for i in range(self.latest_outer_iter):
-                        self.time[-(self.latest_outer_iter-i)] = self.prev_time + (
-                            self.latest_time-self.prev_time)*((i+1)/self.prev_num_outer_iters)
+                        self.time[-(self.latest_outer_iter - i)] = self.prev_time + (
+                            self.latest_time - self.prev_time
+                        ) * ((i + 1) / self.prev_num_outer_iters)
 
             if "Ux," in split and self.niter > len(self.UxResiduals):
-                self.UxResiduals.append(float(split[7].split(',')[0]))
+                self.UxResiduals.append(float(split[7].split(",")[0]))
             if "Uy," in split and self.niter > len(self.UyResiduals):
-                self.UyResiduals.append(float(split[7].split(',')[0]))
+                self.UyResiduals.append(float(split[7].split(",")[0]))
             if "Uz," in split and self.niter > len(self.UzResiduals):
-                self.UzResiduals.append(float(split[7].split(',')[0]))
+                self.UzResiduals.append(float(split[7].split(",")[0]))
             if "p," in split and self.niter > len(self.pResiduals):
-                self.pResiduals.append(float(split[7].split(',')[0]))
+                self.pResiduals.append(float(split[7].split(",")[0]))
             if "p_rgh," in split and self.niter > len(self.pResiduals):
-                self.pResiduals.append(float(split[7].split(',')[0]))
+                self.pResiduals.append(float(split[7].split(",")[0]))
             if "h," in split and self.niter > len(self.EResiduals):
-                self.EResiduals.append(float(split[7].split(',')[0]))
+                self.EResiduals.append(float(split[7].split(",")[0]))
             # HiSA coupled residuals
             if "Residual:" in split and self.niter > len(self.rhoResiduals):
                 self.rhoResiduals.append(float(split[4]))
-                self.UxResiduals.append(float(split[5].lstrip('(')))
+                self.UxResiduals.append(float(split[5].lstrip("(")))
                 self.UyResiduals.append(float(split[6]))
-                self.UzResiduals.append(float(split[7].rstrip(')')))
+                self.UzResiduals.append(float(split[7].rstrip(")")))
                 self.EResiduals.append(float(split[8]))
             if "k," in split and self.niter > len(self.kResiduals):
-                self.kResiduals.append(float(split[7].split(',')[0]))
+                self.kResiduals.append(float(split[7].split(",")[0]))
             if "epsilon," in split and self.niter > len(self.epsilonResiduals):
-                self.epsilonResiduals.append(float(split[7].split(',')[0]))
+                self.epsilonResiduals.append(float(split[7].split(",")[0]))
             if "omega," in split and self.niter > len(self.omegaResiduals):
-                self.omegaResiduals.append(float(split[7].split(',')[0]))
+                self.omegaResiduals.append(float(split[7].split(",")[0]))
             if "nuTilda," in split and self.niter > len(self.nuTildaResiduals):
-                self.nuTildaResiduals.append(float(split[7].split(',')[0]))
+                self.nuTildaResiduals.append(float(split[7].split(",")[0]))
             if "gammaInt," in split and self.niter > len(self.gammaIntResiduals):
-                self.gammaIntResiduals.append(float(split[7].split(',')[0]))
+                self.gammaIntResiduals.append(float(split[7].split(",")[0]))
             if "ReThetat," in split and self.niter > len(self.ReThetatResiduals):
-                self.ReThetatResiduals.append(float(split[7].split(',')[0]))
+                self.ReThetatResiduals.append(float(split[7].split(",")[0]))
 
         # Update plots
         if self.niter > 1 and self.niter > prev_niter:
-            self.solver.Proxy.residual_plotter.updateValues(self.time, OrderedDict([
-                ('$\\rho$', self.rhoResiduals),
-                ('$U_x$', self.UxResiduals),
-                ('$U_y$', self.UyResiduals),
-                ('$U_z$', self.UzResiduals),
-                ('$p$', self.pResiduals),
-                ('$E$', self.EResiduals),
-                ('$k$', self.kResiduals),
-                ('$\\epsilon$', self.epsilonResiduals),
-                ('$\\tilde{\\nu}$', self.nuTildaResiduals),
-                ('$\\omega$', self.omegaResiduals),
-                ('$\\gamma$', self.gammaIntResiduals),
-                ('$Re_{\\theta}$', self.ReThetatResiduals)]))
+            self.solver.Proxy.residual_plotter.updateValues(
+                self.time,
+                OrderedDict(
+                    [
+                        ("$\\rho$", self.rhoResiduals),
+                        ("$U_x$", self.UxResiduals),
+                        ("$U_y$", self.UyResiduals),
+                        ("$U_z$", self.UzResiduals),
+                        ("$p$", self.pResiduals),
+                        ("$E$", self.EResiduals),
+                        ("$k$", self.kResiduals),
+                        ("$\\epsilon$", self.epsilonResiduals),
+                        ("$\\tilde{\\nu}$", self.nuTildaResiduals),
+                        ("$\\omega$", self.omegaResiduals),
+                        ("$\\gamma$", self.gammaIntResiduals),
+                        ("$Re_{\\theta}$", self.ReThetatResiduals),
+                    ]
+                ),
+            )
 
         # postProcessing readers
         for r in self.postproc_readers:
@@ -303,36 +343,42 @@ class PostProcessingReader:
                 pass
         if self.file:
             ntimes = len(self.time)
-            
+
             for l in self.file.readlines():
                 l = l.strip()
-                if len(l) and not l.startswith('#'):
+                if len(l) and not l.startswith("#"):
                     s = l.split()
                     self.time.append(float(s[0]))
-                    
+
                     col_num = 1
                     val_num = 0
                     output_num = 0
                     in_vector = False
                     for i in range(1, len(s)):
-                        if s[i].startswith('('):
+                        if s[i].startswith("("):
                             in_vector = True
-                        v = s[i].lstrip('(').rstrip(')')
+                        v = s[i].lstrip("(").rstrip(")")
                         if v and col_num in self.column_numbers:
-                            while len(self.values) < val_num+1:
+                            while len(self.values) < val_num + 1:
                                 if in_vector:
-                                    self.legends.append(self.column_legends[output_num].format('$_x$'))
-                                    self.legends.append(self.column_legends[output_num].format('$_y$'))
-                                    self.legends.append(self.column_legends[output_num].format('$_z$'))
+                                    self.legends.append(
+                                        self.column_legends[output_num].format("$_x$")
+                                    )
+                                    self.legends.append(
+                                        self.column_legends[output_num].format("$_y$")
+                                    )
+                                    self.legends.append(
+                                        self.column_legends[output_num].format("$_z$")
+                                    )
                                     self.values.append([])
                                     self.values.append([])
                                     self.values.append([])
                                 else:
-                                    self.legends.append(self.column_legends[output_num].format(''))
+                                    self.legends.append(self.column_legends[output_num].format(""))
                                     self.values.append([])
                             self.values[val_num].append(float(v))
                             val_num += 1
-                        if s[i].endswith(')'):
+                        if s[i].endswith(")"):
                             in_vector = False
                         if v and not in_vector:
                             if col_num in self.column_numbers:
@@ -340,8 +386,7 @@ class PostProcessingReader:
                             col_num += 1
 
             if len(self.time) > ntimes:
-                self.plotter.updateValues(self.time, OrderedDict(
-                    zip(self.legends, self.values)))
+                self.plotter.updateValues(self.time, OrderedDict(zip(self.legends, self.values)))
 
     def end(self):
         if self.file:

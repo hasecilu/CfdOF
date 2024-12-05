@@ -29,10 +29,13 @@ class CommandCfdOpenPreferencesPage:
         pass
 
     def GetResources(self):
-        return {'MenuText': QT_TRANSLATE_NOOP("CfdOF_OpenPreferences",
-                                                "Open preferences"),
-                'ToolTip': QT_TRANSLATE_NOOP("CfdOF_OpenPreferences",
-                                                "Opens the CfdOF preferences page")}
+        return {
+            "MenuText": QT_TRANSLATE_NOOP("CfdOF_OpenPreferences", "Open preferences"),
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "CfdOF_OpenPreferences", "Opens the CfdOF preferences page"
+            ),
+        }
+
     def IsActive(self):
         return True
 

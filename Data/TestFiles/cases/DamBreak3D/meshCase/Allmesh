@@ -50,7 +50,7 @@ fi
 runCommand decomposePar
 runParallel $NPROC snappyHexMesh -overwrite
 if [ ! -z $FOAM_API ] || [ $WM_PROJECT_VERSION -lt 11 ] 2>/dev/null
-then    
+then
     runCommand reconstructParMesh -constant
 else
     runCommand reconstructPar -constant

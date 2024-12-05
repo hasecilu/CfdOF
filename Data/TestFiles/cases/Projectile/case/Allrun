@@ -77,4 +77,3 @@ then
 else
     runParallel $NPROC hisa
 fi
-

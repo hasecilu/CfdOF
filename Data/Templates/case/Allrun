@@ -241,4 +241,3 @@ else
     runCommand %(solver/SolverName%)
 fi
 %}
-

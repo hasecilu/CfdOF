@@ -1,16 +1,17 @@
 #### import the simple module from the paraview
 from paraview.simple import *
+
 #### disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
 
 # create a new OpenFOAMReader
-pfoam = OpenFOAMReader(FileName=r'pv.foam')
-pfoam.CaseType = 'Decomposed Case'
-if hasattr(pfoam, 'Decomposepolyhedra'):
+pfoam = OpenFOAMReader(FileName=r"pv.foam")
+pfoam.CaseType = "Decomposed Case"
+if hasattr(pfoam, "Decomposepolyhedra"):
     pfoam.Decomposepolyhedra = 0
 
 # get active view
-renderView1 = GetActiveViewOrCreate('RenderView')
+renderView1 = GetActiveViewOrCreate("RenderView")
 
 # reset view to fit data
 renderView1.ResetCamera()
@@ -25,10 +26,10 @@ cleantoGrid1Display = Show(cleantoGrid1, renderView1)
 Hide(pfoam, renderView1)
 
 # get color transfer function/color map for 'U'
-ULUT = GetColorTransferFunction('U')
+ULUT = GetColorTransferFunction("U")
 
 # trace defaults for the display properties.
-cleantoGrid1Display.ColorArrayName = ['POINTS', 'U']
+cleantoGrid1Display.ColorArrayName = ["POINTS", "U"]
 cleantoGrid1Display.LookupTable = ULUT
 cleantoGrid1Display.EdgeColor = [0.0, 0.0, 0.5]
 cleantoGrid1Display.ScalarOpacityUnitDistance = 0.05
@@ -41,7 +42,7 @@ animationScene1.UpdateAnimationUsingDataTimeSteps()
 
 # go to the final timestep of the simulation
 timesteps = pfoam.TimestepValues
-finalTime =  timesteps[-1]
+finalTime = timesteps[-1]
 animationScene1.AnimationTime = finalTime
 
 # rescale color and/or opacity maps used to exactly fit the current data range
@@ -52,4 +53,3 @@ renderView1.Update()
 
 # reset view to fit data
 renderView1.ResetCamera(False)
-

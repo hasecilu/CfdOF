@@ -8,17 +8,17 @@ please consider tackling one of these items.
 * Finish translation support
     * See the guide here: https://wiki.freecadweb.org/Translating_an_external_workbench
     * Forum topic: https://forum.freecadweb.org/viewtopic.php?f=10&t=36413
-* Visualisation of point locations. At various places a point is specified - e.g. an internal 
+* Visualisation of point locations. At various places a point is specified - e.g. an internal
 mesh point when snappyHexMesh is selected in the meshing task panel, as well as
-when specifying the scalar transport sources in the scalar transport panel. These should be 
-displayed as a point on the model so that the user has feedback on their location. 
-* Logging - some of the more technical/diagnostic output that is printed to the report view 
-could instead be directed to the log, so that the report view is cleaner and more readable 
+when specifying the scalar transport sources in the scalar transport panel. These should be
+displayed as a point on the model so that the user has feedback on their location.
+* Logging - some of the more technical/diagnostic output that is printed to the report view
+could instead be directed to the log, so that the report view is cleaner and more readable
 for the user. Generally improve the logging and messages that are printed there.
 (see FreeCAD.Console.PrintLog/PrintMessage/PrintWarning/PrintError.)
 * Test and provide more elegant errors or fallbacks for invalid/unexpected/unusual sequences of actions
 * Test and fix running under WSL on Windows
-  
+
 ## Meshing
 * Add ability to import meshes from other formats? (CGNS, .msh (fluent), others?)
 * Expose parallel option in GUI

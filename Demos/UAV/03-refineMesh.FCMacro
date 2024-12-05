@@ -28,10 +28,10 @@ FreeCAD.ActiveDocument.MeshRefinement.FirstLayerHeight = '0 mm'
 FreeCAD.ActiveDocument.MeshRefinement.RegionEdgeRefinement = 1
 FreeCAD.ActiveDocument.MeshRefinement.Internal = False
 
-# Front wheel 
+# Front wheel
 CfdMeshRefinement.makeCfdMeshRefinement(App.ActiveDocument.Compound001_Mesh)
 FreeCAD.ActiveDocument.MeshRefinement002.ShapeRefs = [
-(FreeCAD.ActiveDocument.getObject('Cut'), ( 
+(FreeCAD.ActiveDocument.getObject('Cut'), (
 'Face19', 'Face20', 'Face21', 'Face22', 'Face23', 'Face24', 'Face25', 'Face26', 'Face27', 'Face28', 'Face29', 'Face30',
 'Face31', 'Face32', 'Face45', 'Face46', 'Face47', 'Face48', 'Face49', 'Face50', 'Face51', 'Face52', 'Face53', 'Face75'))]
 FreeCAD.ActiveDocument.MeshRefinement002.RelativeLength = 0.02

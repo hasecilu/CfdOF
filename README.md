@@ -189,7 +189,7 @@ the standard Debian and Ubuntu packages do not include the build command 'wmake'
 and therefore cannot be used with the optional components 'HiSA' and 'cfMesh'.
 We therefore recommend installation of the packages supplied through
 the official websites above. Please make sure the install the 'development'
-package where available (usually named with the suffix '-devel' or '-dev') to 
+package where available (usually named with the suffix '-devel' or '-dev') to
 be sure that the optional components 'HiSA' and 'cfMesh' can be compiled
 with 'wmake'.
 
@@ -230,7 +230,7 @@ assistance may be required to get this to work.  Please leave a message on the [
         * `sudo usermod --add-subuids 10000-75535 $USER`
         * `sudo usermod --add-subgids 10000-75535 $USER`
         * `podman system migrate`
-        * `mkdir -p /home/user/cfdof` This command makes a directory for WSL fast file system integration 
+        * `mkdir -p /home/user/cfdof` This command makes a directory for WSL fast file system integration
         * `exit`
         * `exit` (A second time to return to the cmd prompt).
     4. In the cfdof preference page, set the _Default output directory_ to use the WSL fast file system integration directory (created above):

@@ -5,4 +5,3 @@ This test case was taken from the following paper, which includes a comparison w
 wave impact problems. _Journal of Computational Physics_ (2005) **206** p.p. 363-393
 
 ![screenshot](geom.png)
-
